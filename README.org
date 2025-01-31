@@ -1,0 +1,4 @@
+#+TITLE: Configs Linux
+#+AUTHOR: Fran
+
+Nada, eso, aca voy a subir configs del sistema que considere necesario hacer backup, de programas que mas uso, mas que nada para subir cosas de emacs
