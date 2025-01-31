@@ -1,0 +1,463 @@
+#+title: Config Emacs
+#+author: fran
+#+language: es
+#+startup: content indent, showeverything
+#+description: mi config personal de emacs
+
+* TABLA DE CONTENIDOS                                                 :toc:
+- [[#configuracion-basica][Configuracion Basica]]
+  - [[#bindeos-basicos][Bindeos Basicos]]
+  - [[#config-basica][Config Basica]]
+  - [[#desactivar-barra-de-menu-scroll-pagina-inicio][Desactivar barra de menu, scroll, pagina inicio]]
+  - [[#cambiar-directorio-de-backups][Cambiar directorio de backups.]]
+  - [[#acciones-al-guardar-este-archivo][Acciones al guardar este archivo]]
+- [[#paquetes][Paquetes]]
+  - [[#gestor-de-paquetes][Gestor de paquetes]]
+  - [[#vertico][Vertico]]
+  - [[#corfu][Corfu]]
+  - [[#which-key][Which-key]]
+  - [[#marginalia][Marginalia]]
+  - [[#orderless][Orderless]]
+  - [[#projectile][Projectile]]
+  - [[#snippets][Snippets]]
+  - [[#flycheck-quickrun][Flycheck, Quickrun]]
+  - [[#devdocs][Devdocs]]
+  - [[#eglot][Eglot]]
+- [[#org-mode][ORG Mode]]
+  - [[#toc-org][toc-org]]
+  - [[#facha][Facha]]
+  - [[#org-babel][Org-babel]]
+  - [[#forzar-todo-a-padre][Forzar TODO a padre]]
+  - [[#imagenes-por-defecto][Imagenes por defecto]]
+- [[#gui][GUI]]
+  - [[#fuentes][Fuentes]]
+  - [[#temas-y-colorcitos][Temas y colorcitos]]
+
+* Configuracion Basica
+** Bindeos Basicos
+Abrir Config.org =C-c c=
+#+begin_src emacs-lisp :tangle "init.el"
+  (global-set-key (kbd "C-c c") (lambda () (interactive) (find-file "~/.emacs.d/config.org")))
+#+end_src
+** Config Basica
+Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), mostrar numero de lineas, mostrar lineas largas como varias, borrar seleccion al tipear
+#+begin_src emacs-lisp :tangle "init.el"
+                                          ;(electric-pair-mode 1)
+  (show-paren-mode 1)
+  
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+  (setq-default standard-indent 4) 
+
+  (global-display-line-numbers-mode 1)
+  (global-visual-line-mode t)
+  (electric-indent-mode 1)
+  (setq whitespace-line-column 1000)
+  (delete-selection-mode 1)
+  (auto-image-file-mode t);; para mostrar imágenes
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)  
+#+end_src
+
+** Desactivar barra de menu, scroll, pagina inicio
+#+begin_src emacs-lisp :tangle "init.el"
+  (setq inhibit-startup-message t visible-bell t)
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
+
+** Cambiar directorio de backups.
+Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del archivo por defecto, aca muevo todos los backups a una carpeta especifica
+#+begin_src emacs-lisp :tangle "init.el"
+  (recentf-mode 1)            
+  (setq recentf-max-saved-items 50)
+  (setq backup-directory-alist `(("." . "~/.emacs.d/autoguardado/")))
+#+end_src
+** Acciones al guardar este archivo 
+Autotanglear archivos .el al guardar archivos.org.
+Lo mismo que hacer =C-c C-v t=.
+#+begin_src emacs-lisp :tangle "init.el"
+  (defun fran/auto-tangle ()
+    (when (string-equal (file-name-extension buffer-file-name) "org")
+      (org-babel-tangle)))
+  (add-hook 'after-save-hook 'fran/auto-tangle)
+#+end_src
+
+* Paquetes
+** Gestor de paquetes
+Inicializo el gestor de paquetes por defecto de emacs, agrego repos melpa y gnu, inicializo use-package.
+#+begin_src emacs-lisp :tangle "init.el"
+  (require 'package)
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("gnu" . "https://elpa.gnu.org/packages/")))
+  (package-initialize)
+
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+  (require 'use-package)
+#+end_src
+
+** Vertico
+Vertico es una UI para el autocompletado del minibuffer.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package vertico :ensure t
+    :custom
+    (vertico-scroll-margin 0)
+    (vertico-count 20)
+    (vertico-resize t)
+    (vertico-cycle t)
+    :init
+    (vertico-mode))
+  (keymap-set vertico-map "<left>" #'vertico-directory-up)
+  (keymap-set vertico-map "<right>" #'vertico-insert)
+#+end_src
+
+** Corfu
+UI autocompletado de buffer (codigo).
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package corfu :ensure t
+    :hook
+    (corfu-mode . corfu-popupinfo-mode)
+    :custom
+    (corfu-auto t)
+    (corfu-cycle t)
+    (corfu-resize t)
+    (corfu-auto-delay 0.25)
+    (corfu-auto-prefix 1)
+    (corfu-preview-current nil)
+    ;; Recommended: Enable Corfu globally.  This is recommended since Dabbrev can
+    ;; be used globally (M-/).  See also the customization variable
+    ;; `global-corfu-modes' to exclude certain modes.
+    :init
+    (global-corfu-mode)
+    )
+  (keymap-set corfu-map "TAB" #'corfu-next)
+  (keymap-set corfu-map "<backtab>" #'corfu-previous)
+  (setq corfu-popupinfo-delay 0.2)
+
+  (with-eval-after-load 'corfu
+    (define-key corfu-map (kbd "<next>") #'corfu-popupinfo-scroll-up)
+    (define-key corfu-map (kbd "<prior>") #'corfu-popupinfo-scroll-down))
+
+#+end_src
+
+** Which-key
+Muestra opciones de autocompletado para comandos.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package which-key :ensure t :config (which-key-mode))
+#+end_src
+
+** Marginalia
+Muestra metadatos en el minibuffer (info de comandos, permisos de archivos, etc).
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package marginalia :ensure t
+    :init
+    (marginalia-mode))
+#+end_src
+
+** Orderless
+Agrega busqueda sin orden en los autocompletados.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+** Projectile
+Mejora la gestion de proyectos, busqueda de archivo en el proyecto, compilacion, etc.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package projectile :ensure t :init (projectile-mode +1)
+    :config (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+#+end_src
+
+** Snippets
+Yasnippet es para snipets en emacs.
+Algunas definiciones de snippets para org-mode, tangle a init.el, a directorio, etc.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package yasnippet :ensure t :config (yas-global-mode 1))
+
+  (yas-define-snippets 'org-mode
+                       '(("eli" "#+begin_src emacs-lisp :tangle \"init.el\"\n\n#+end_src"
+                          "Bloque de codigo emacs-lisp con tangle a init.el" nil nil nil "~/.emacs.d/snippets/elt" nil nil)
+
+                         ("ela" "#+begin_src emacs-lisp :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
+                          "Bloque de codigo emacs-lisp con tangle a $archivo" nil nil nil "~/.emacs.d/snippets/ela" nil nil)
+
+                         ("suml" "#+begin_src plantuml :file \"${1:archivo}\"\n\n#+end_src"
+                          "Bloque de codigo plantuml, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/suml" nil nil)
+
+                         ("sjava" "#+begin_src java :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
+                          "Bloque de codigo java, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/java" nil nil)
+
+                         ("sscm" "#+begin_src scheme \n${1:}\n#+end_src"
+                          "Bloque de codigo scheme" nil nil nil "~/.emacs.d/snippets/scheme" nil nil)
+
+                         )
+                       )
+
+#+end_src
+
+#+RESULTS:
+#+begin_example
+#s(yas--template "sscm" "#+begin_src scheme 
+${1:}
+
+,#+end_src" "Bloque de codigo scheme" nil nil "~/.emacs.d/snippets/scheme" nil nil "Bloque de codigo scheme" ((menu-item "Bloque de codigo scheme" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo scheme")) :keys "sscm =>")) nil nil #s(yas--table "org-mode" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("<vi" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("video" #s(yas--template "<vi" "[[${1:link to the video}][file:${2:link of the image}]
+" "video" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/video" nil nil "video" ((menu-item "video" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "video")) :keys "<vi =>")) nil nil #1))) "<v" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("verse" #s(yas--template "<v" "#+begin_verse
+$0
+,#+end_verse" "verse" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/verse" nil nil "verse" ((menu-item "verse" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "verse")) :keys "<v =>")) nil nil #1))) "uml" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("uml" #s(yas--template "uml" "#+begin_uml
+$1
+,#+end_uml" "uml" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/uml" nil nil "uml" ((menu-item "uml" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "uml")) :keys "uml =>")) nil nil #1))) "<ti" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("title" #s(yas--template "<ti" "#+title: $0" "title" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/title" nil nil "title" ((menu-item "title" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "title")) :keys "<ti =>")) nil nil #1))) "<ta" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("table" #s(yas--template "<ta" "#+caption: ${1: caption of the table}
+|${2:column 1} | ${3: column 2} |
+|--------------+----------------|
+" "table" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/table" nil nil "table" ((menu-item "table" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "table")) :keys "<ta =>")) nil nil #1))) "<st" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("style" #s(yas--template "<st" "#+style: <link rel=\"stylesheet\" type=\"text/css\" href=\"$1\" />" "style" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/style" nil nil "style" ((menu-item "style" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "style")) :keys "<st =>")) nil nil #1))) "<src" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("src" #s(yas--template "<src" "#+begin_src $1
+  $0
+,#+end_src
+" "src" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/src" nil nil "src" ((menu-item "src" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "src")) :keys "<src =>")) nil nil #1))) "set" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("setup" #s(yas--template "set" "#+setupfile: $0" "setup" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/setup" nil nil "setup" ((menu-item "setup" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "setup")) :keys "set =>")) nil nil #1))) "<rib" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("reveal_image_background" #s(yas--template "<rib" "    :properties:
+    :reveal_background: ${1: path of the image}
+    :reveal_background_trans: ${2: default||cube||page||concave||zoom||linear||fade||none||slide}
+    :end:" "reveal_image_background" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/rv_image_background" nil nil "reveal_image_background" ((menu-item "reveal_image_background" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "reveal_image_background")) :keys "<rib =>")) nil nil #1))) "<rsb" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("reveal_single_colored_background" #s(yas--template "<rsb" ":properties:
+:reveal_background: ${1: #123456}
+:end:" "reveal_single_colored_background" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/rv_background" nil nil "reveal_single_colored_background" ((menu-item "reveal_single_colored_background" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "reveal_single_colored_background")) :keys "<rsb =>")) nil nil #1))) "<q" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("quote" #s(yas--template "<q" "#+begin_quote
+$0
+,#+end_quote" "quote" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/quote" nil nil "quote" ((menu-item "quote" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "quote")) :keys "<q =>")) nil nil #1))) "py_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("python" #s(yas--template "py_" "#+begin_src python
+$0
+,#+end_src" "python" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/python" nil nil "python" ((menu-item "python" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "python")) :keys "py_ =>")) nil nil #1))) "<op" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("options" #s(yas--template "<op" "#+options: h:${1:1} num:${2:t||nil} toc:${3:t||nil}$0" "options" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/options" nil nil "options" ((menu-item "options" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "options")) :keys "<op =>")) nil nil #1))) "matrix_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("matrix" #s(yas--template "matrix_" "\\left \\(
+\\begin{array}{${1:ccc}}
+${2:v1 & v2} \\\\
+$0
+\\end{array}
+\\right \\)" "matrix" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/matrix" nil nil "matrix" ((menu-item "matrix" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "matrix")) :keys "matrix_ =>")) nil nil #1))) "<li" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("link" #s(yas--template "<li" "[[${1:link}][${2:description}]]
+" "link" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/link" nil nil "link" ((menu-item "link" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "link")) :keys "<li =>")) nil nil #1))) "<lan" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("language" #s(yas--template "<lan" "#+language: ${1:en}" "language" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/language" nil nil "language" ((menu-item "language" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "language")) :keys "<lan =>")) nil nil #1))) "<ke" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("keywords" #s(yas--template "<ke" "#+keywords: $0" "keywords" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/keywords" nil nil "keywords" ((menu-item "keywords" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "keywords")) :keys "<ke =>")) nil nil #1))) "ipy_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("ipython" #s(yas--template "ipy_" "#+begin_src ipython :session ${1:session01} :file ${2:$$(concat (make-temp-name \"./ipython-\") \".png\")} :exports ${3:both}
+$0
+,#+end_src" "ipython" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/ipython" nil nil "ipython" ((menu-item "ipython" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "ipython")) :keys "ipy_ =>")) nil nil #1))) "<i" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("include" #s(yas--template "<i" "#+include: $0" "include" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/include" nil nil "include" ((menu-item "include" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "include")) :keys "<i =>")) nil nil #1))) "img_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("img" #s(yas--template "img_" "<img src=\"$1\" alt=\"$2\" align=\"${3:left}\" title=\"${4:image title}\" class=\"img\" $5/>$0" "img" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/img" nil nil "img" ((menu-item "img" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "img")) :keys "img_ =>")) nil nil #1))) "<im" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("image" #s(yas--template "<im" "#+caption: ${1:caption of the image}
+[[file:${2:image_path}]]$0" "image" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/image" nil nil "image" ((menu-item "image" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "image")) :keys "<im =>")) nil nil #1))) "<ht" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("html" #s(yas--template "<ht" "#+html:$1" "html" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/html" nil nil "html" ((menu-item "html" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "html")) :keys "<ht =>")) nil nil #1))) "fig_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("figure" #s(yas--template "fig_" "#+caption: ${1:caption}
+,#+attr_latex: ${2:scale=0.75}
+,#+label: fig:${3:label}$0" "figure" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/figure" nil nil "figure" ((menu-item "figure" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "figure")) :keys "fig_ =>")) nil nil #1))) "<ex" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("export" #s(yas--template "<ex" "#+begin_export ${1:type}
+$0
+,#+end_export" "export" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/export" nil nil "export" ((menu-item "export" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "export")) :keys "<ex =>")) nil nil #1))) "<e" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("example" #s(yas--template "<e" "#+begin_example
+$0
+,#+end_example" "example" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/exampleblock" nil nil "example" ((menu-item "example" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "example")) :keys "<e =>")) nil nil #1))) "entry_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("entry" #s(yas--template "entry_" "#+begin_html
+---
+layout: ${1:default}
+title: ${2:title}
+---
+,#+end_html
+" "entry" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/entry" nil nil "entry" ((menu-item "entry" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "entry")) :keys "entry_ =>")) nil nil #1))) "emb_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("embedded" #s(yas--template "emb_" "src_${1:lang}${2:[${3:where}]}{${4:code}}" "embedded" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/embedded" nil nil "embedded" ((menu-item "embedded" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "embedded")) :keys "emb_ =>")) nil nil #1))) "<em" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("email" #s(yas--template "<em" "#+email: $0" "email" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/email" nil nil "email" ((menu-item "email" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "email")) :keys "<em =>")) nil nil #1))) "emacs-lisp_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("emacs-lisp" #s(yas--template "emacs-lisp_" "#+begin_src emacs-lisp :tangle yes
+$0
+,#+end_src" "emacs-lisp" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/emacs-lisp" nil nil "emacs-lisp" ((menu-item "emacs-lisp" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "emacs-lisp")) :keys "emacs-lisp_ =>")) nil nil #1))) "elisp_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("elisp" #s(yas--template "elisp_" "#+begin_src emacs-lisp :tangle yes
+$0
+,#+end_src" "elisp" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/elisp" nil nil "elisp" ((menu-item "elisp" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "elisp")) :keys "elisp_ =>")) nil nil #1))) "dot_" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("dot" #s(yas--template "dot_" "#+begin_src dot :file ${1:file} :cmdline -t${2:pdf} :exports none :results silent
+$0
+,#+end_src
+[[file:${3:path}]]" "dot" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/dot" nil nil "dot" ((menu-item "dot" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "dot")) :keys "dot_ =>")) nil nil #1))) "desc" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("description" #s(yas--template "desc" "#+description: $0" "description" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/description" nil nil "description" ((menu-item "description" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "description")) :keys "desc =>")) nil nil #1))) "<da" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("date" #s(yas--template "<da" "#+date: ${1:year}:${2:month}:${3:day}" "date" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/date" nil nil "date" ((menu-item "date" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "date")) :keys "<da =>")) nil nil #1))) "<c" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("center" #s(yas--template "<c" "#+begin_center
+$0
+,#+end_center" "center" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/center" nil nil "center" ((menu-item "center" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "center")) :keys "<c =>")) nil nil #1))) "<au" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("author" #s(yas--template "<au" "#+author: $0" "author" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/author" nil nil "author" ((menu-item "author" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "author")) :keys "<au =>")) nil nil #1))) "eli" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("Bloque de codigo emacs-lisp con tangle a init.el" #s(yas--template "eli" "#+begin_src emacs-lisp :tangle \"init.el\"
+
+,#+end_src" "Bloque de codigo emacs-lisp con tangle a init.el" nil nil "~/.emacs.d/snippets/elt" nil nil "Bloque de codigo emacs-lisp con tangle a init.el" ((menu-item "Bloque de codigo emacs-lisp con tangle a init.el" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo emacs-lisp con tangle a init.el")) :keys "eli =>")) nil nil #1))) "ela" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("Bloque de codigo emacs-lisp con tangle a $archivo" #s(yas--template "ela" "#+begin_src emacs-lisp :tangle \"${1:archivo}\" :mkdirp yes
+
+,#+end_src" "Bloque de codigo emacs-lisp con tangle a $archivo" nil nil "~/.emacs.d/snippets/ela" nil nil "Bloque de codigo emacs-lisp con tangle a $archivo" ((menu-item "Bloque de codigo emacs-lisp con tangle a $archivo" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo emacs-lisp con tangle a $archivo")) :keys "ela =>")) nil nil #1))) "suml" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("Bloque de codigo plantuml, guarda en $archivo" #s(yas--template "suml" "#+begin_src plantuml :file \"${1:archivo}\"
+
+,#+end_src" "Bloque de codigo plantuml, guarda en $archivo" nil nil "~/.emacs.d/snippets/suml" nil nil "Bloque de codigo plantuml, guarda en $archivo" ((menu-item "Bloque de codigo plantuml, guarda en $archivo" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo plantuml, guarda en $archivo")) :keys "suml =>")) nil nil #1))) "sjava" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("Bloque de codigo java, guarda en $archivo" #s(yas--template "sjava" "#+begin_src java :tangle \"${1:archivo}\" :mkdirp yes
+
+,#+end_src" "Bloque de codigo java, guarda en $archivo" nil nil "~/.emacs.d/snippets/java" nil nil "Bloque de codigo java, guarda en $archivo" ((menu-item "Bloque de codigo java, guarda en $archivo" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo java, guarda en $archivo")) :keys "sjava =>")) nil nil #1))) "sscm" #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("Bloque de codigo scheme" #0)))) #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("video" #s(yas--template "<vi" "[[${1:link to the video}][file:${2:link of the image}]
+" "video" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/video" nil nil "video" ((menu-item "video" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "video")) :keys "<vi =>")) nil nil #1) "verse" #s(yas--template "<v" "#+begin_verse
+$0
+,#+end_verse" "verse" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/verse" nil nil "verse" ((menu-item "verse" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "verse")) :keys "<v =>")) nil nil #1) "uml" #s(yas--template "uml" "#+begin_uml
+$1
+,#+end_uml" "uml" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/uml" nil nil "uml" ((menu-item "uml" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "uml")) :keys "uml =>")) nil nil #1) "title" #s(yas--template "<ti" "#+title: $0" "title" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/title" nil nil "title" ((menu-item "title" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "title")) :keys "<ti =>")) nil nil #1) "table" #s(yas--template "<ta" "#+caption: ${1: caption of the table}
+|${2:column 1} | ${3: column 2} |
+|--------------+----------------|
+" "table" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/table" nil nil "table" ((menu-item "table" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "table")) :keys "<ta =>")) nil nil #1) "style" #s(yas--template "<st" "#+style: <link rel=\"stylesheet\" type=\"text/css\" href=\"$1\" />" "style" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/style" nil nil "style" ((menu-item "style" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "style")) :keys "<st =>")) nil nil #1) "src" #s(yas--template "<src" "#+begin_src $1
+  $0
+,#+end_src
+" "src" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/src" nil nil "src" ((menu-item "src" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "src")) :keys "<src =>")) nil nil #1) "setup" #s(yas--template "set" "#+setupfile: $0" "setup" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/setup" nil nil "setup" ((menu-item "setup" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "setup")) :keys "set =>")) nil nil #1) "reveal_image_background" #s(yas--template "<rib" "    :properties:
+    :reveal_background: ${1: path of the image}
+    :reveal_background_trans: ${2: default||cube||page||concave||zoom||linear||fade||none||slide}
+    :end:" "reveal_image_background" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/rv_image_background" nil nil "reveal_image_background" ((menu-item "reveal_image_background" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "reveal_image_background")) :keys "<rib =>")) nil nil #1) "reveal_single_colored_background" #s(yas--template "<rsb" ":properties:
+:reveal_background: ${1: #123456}
+:end:" "reveal_single_colored_background" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/rv_background" nil nil "reveal_single_colored_background" ((menu-item "reveal_single_colored_background" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "reveal_single_colored_background")) :keys "<rsb =>")) nil nil #1) "quote" #s(yas--template "<q" "#+begin_quote
+$0
+,#+end_quote" "quote" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/quote" nil nil "quote" ((menu-item "quote" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "quote")) :keys "<q =>")) nil nil #1) "python" #s(yas--template "py_" "#+begin_src python
+$0
+,#+end_src" "python" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/python" nil nil "python" ((menu-item "python" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "python")) :keys "py_ =>")) nil nil #1) "options" #s(yas--template "<op" "#+options: h:${1:1} num:${2:t||nil} toc:${3:t||nil}$0" "options" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/options" nil nil "options" ((menu-item "options" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "options")) :keys "<op =>")) nil nil #1) "matrix" #s(yas--template "matrix_" "\\left \\(
+\\begin{array}{${1:ccc}}
+${2:v1 & v2} \\\\
+$0
+\\end{array}
+\\right \\)" "matrix" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/matrix" nil nil "matrix" ((menu-item "matrix" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "matrix")) :keys "matrix_ =>")) nil nil #1) "link" #s(yas--template "<li" "[[${1:link}][${2:description}]]
+" "link" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/link" nil nil "link" ((menu-item "link" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "link")) :keys "<li =>")) nil nil #1) "language" #s(yas--template "<lan" "#+language: ${1:en}" "language" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/language" nil nil "language" ((menu-item "language" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "language")) :keys "<lan =>")) nil nil #1) "keywords" #s(yas--template "<ke" "#+keywords: $0" "keywords" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/keywords" nil nil "keywords" ((menu-item "keywords" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "keywords")) :keys "<ke =>")) nil nil #1) "ipython" #s(yas--template "ipy_" "#+begin_src ipython :session ${1:session01} :file ${2:$$(concat (make-temp-name \"./ipython-\") \".png\")} :exports ${3:both}
+$0
+,#+end_src" "ipython" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/ipython" nil nil "ipython" ((menu-item "ipython" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "ipython")) :keys "ipy_ =>")) nil nil #1) "include" #s(yas--template "<i" "#+include: $0" "include" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/include" nil nil "include" ((menu-item "include" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "include")) :keys "<i =>")) nil nil #1) "img" #s(yas--template "img_" "<img src=\"$1\" alt=\"$2\" align=\"${3:left}\" title=\"${4:image title}\" class=\"img\" $5/>$0" "img" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/img" nil nil "img" ((menu-item "img" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "img")) :keys "img_ =>")) nil nil #1) "image" #s(yas--template "<im" "#+caption: ${1:caption of the image}
+[[file:${2:image_path}]]$0" "image" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/image" nil nil "image" ((menu-item "image" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "image")) :keys "<im =>")) nil nil #1) "html" #s(yas--template "<ht" "#+html:$1" "html" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/html" nil nil "html" ((menu-item "html" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "html")) :keys "<ht =>")) nil nil #1) "figure" #s(yas--template "fig_" "#+caption: ${1:caption}
+,#+attr_latex: ${2:scale=0.75}
+,#+label: fig:${3:label}$0" "figure" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/figure" nil nil "figure" ((menu-item "figure" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "figure")) :keys "fig_ =>")) nil nil #1) "export" #s(yas--template "<ex" "#+begin_export ${1:type}
+$0
+,#+end_export" "export" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/export" nil nil "export" ((menu-item "export" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "export")) :keys "<ex =>")) nil nil #1) "example" #s(yas--template "<e" "#+begin_example
+$0
+,#+end_example" "example" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/exampleblock" nil nil "example" ((menu-item "example" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "example")) :keys "<e =>")) nil nil #1) "entry" #s(yas--template "entry_" "#+begin_html
+---
+layout: ${1:default}
+title: ${2:title}
+---
+,#+end_html
+" "entry" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/entry" nil nil "entry" ((menu-item "entry" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "entry")) :keys "entry_ =>")) nil nil #1) "embedded" #s(yas--template "emb_" "src_${1:lang}${2:[${3:where}]}{${4:code}}" "embedded" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/embedded" nil nil "embedded" ((menu-item "embedded" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "embedded")) :keys "emb_ =>")) nil nil #1) "email" #s(yas--template "<em" "#+email: $0" "email" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/email" nil nil "email" ((menu-item "email" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "email")) :keys "<em =>")) nil nil #1) "emacs-lisp" #s(yas--template "emacs-lisp_" "#+begin_src emacs-lisp :tangle yes
+$0
+,#+end_src" "emacs-lisp" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/emacs-lisp" nil nil "emacs-lisp" ((menu-item "emacs-lisp" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "emacs-lisp")) :keys "emacs-lisp_ =>")) nil nil #1) "elisp" #s(yas--template "elisp_" "#+begin_src emacs-lisp :tangle yes
+$0
+,#+end_src" "elisp" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/elisp" nil nil "elisp" ((menu-item "elisp" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "elisp")) :keys "elisp_ =>")) nil nil #1) "dot" #s(yas--template "dot_" "#+begin_src dot :file ${1:file} :cmdline -t${2:pdf} :exports none :results silent
+$0
+,#+end_src
+[[file:${3:path}]]" "dot" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/dot" nil nil "dot" ((menu-item "dot" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "dot")) :keys "dot_ =>")) nil nil #1) "description" #s(yas--template "desc" "#+description: $0" "description" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/description" nil nil "description" ((menu-item "description" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "description")) :keys "desc =>")) nil nil #1) "date" #s(yas--template "<da" "#+date: ${1:year}:${2:month}:${3:day}" "date" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/date" nil nil "date" ((menu-item "date" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "date")) :keys "<da =>")) nil nil #1) "center" #s(yas--template "<c" "#+begin_center
+$0
+,#+end_center" "center" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/center" nil nil "center" ((menu-item "center" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "center")) :keys "<c =>")) nil nil #1) "author" #s(yas--template "<au" "#+author: $0" "author" nil nil "/home/fran/.emacs.d/elpa/yasnippet-snippets-20241207.2221/snippets/org-mode/author" nil nil "author" ((menu-item "author" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "author")) :keys "<au =>")) nil nil #1) "Bloque de codigo emacs-lisp con tangle a init.el" #s(yas--template "eli" "#+begin_src emacs-lisp :tangle \"init.el\"
+
+,#+end_src" "Bloque de codigo emacs-lisp con tangle a init.el" nil nil "~/.emacs.d/snippets/elt" nil nil "Bloque de codigo emacs-lisp con tangle a init.el" ((menu-item "Bloque de codigo emacs-lisp con tangle a init.el" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo emacs-lisp con tangle a init.el")) :keys "eli =>")) nil nil #1) "Bloque de codigo emacs-lisp con tangle a $archivo" #s(yas--template "ela" "#+begin_src emacs-lisp :tangle \"${1:archivo}\" :mkdirp yes
+
+,#+end_src" "Bloque de codigo emacs-lisp con tangle a $archivo" nil nil "~/.emacs.d/snippets/ela" nil nil "Bloque de codigo emacs-lisp con tangle a $archivo" ((menu-item "Bloque de codigo emacs-lisp con tangle a $archivo" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo emacs-lisp con tangle a $archivo")) :keys "ela =>")) nil nil #1) "Bloque de codigo plantuml, guarda en $archivo" #s(yas--template "suml" "#+begin_src plantuml :file \"${1:archivo}\"
+
+,#+end_src" "Bloque de codigo plantuml, guarda en $archivo" nil nil "~/.emacs.d/snippets/suml" nil nil "Bloque de codigo plantuml, guarda en $archivo" ((menu-item "Bloque de codigo plantuml, guarda en $archivo" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo plantuml, guarda en $archivo")) :keys "suml =>")) nil nil #1) "Bloque de codigo java, guarda en $archivo" #s(yas--template "sjava" "#+begin_src java :tangle \"${1:archivo}\" :mkdirp yes
+
+,#+end_src" "Bloque de codigo java, guarda en $archivo" nil nil "~/.emacs.d/snippets/java" nil nil "Bloque de codigo java, guarda en $archivo" ((menu-item "Bloque de codigo java, guarda en $archivo" (lambda nil (interactive) (yas--expand-or-visit-from-menu 'org-mode "Bloque de codigo java, guarda en $archivo")) :keys "sjava =>")) nil nil #1) "Bloque de codigo scheme" #0)) nil (keymap)))
+#+end_example
+
+** Flycheck, Quickrun
+Flycheck le da una UI al debuguer/errores de sintaxys/etc numero linea con error, subrayar variable con error,etc.
+Quickrun es para hacer ejecucciones de codigo en el buffer.
+
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package yasnippet-snippets :ensure t)
+  (use-package flycheck :ensure t :init (global-flycheck-mode))
+  (use-package quickrun  :ensure t :bind ("C-c r" . quickrun))
+#+end_src
+
+** Devdocs
+Le pega a la api de devdocs, cantidad de documentacion cantidad.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package devdocs :ensure t)
+  (global-set-key (kbd "C-h D") 'devdocs-lookup)
+#+end_src
+
+** Eglot
+LSP de emacs, configurado con algunos lenguajes.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package eglot
+    ;; :bind (:map eglot-mode-map
+    ;;             ("C-c e f n" . flymake-goto-next-error)
+    ;;             ("C-c e f p" . flymake-goto-prev-error)
+    ;;             ("C-c e r" . eglot-rename)
+    ;;             ("C-c e f r" . eglot-format)
+    ;;             ("C-c e f b" . eglot-format-buffer)
+    ;;             ("C-c e a" . eglot-code-actions))
+    :hook
+    ((c-mode . eglot-ensure)
+     (c++-mode . eglot-ensure))
+    :custom
+    (fset #'jsonrpc--log-event #'ignore)
+    (eglot-events-buffer-size 0))
+  (setq eglot-autoshutdown t)
+
+  (add-hook 'java-mode-hook 'eglot-java-mode)
+  ;;(with-eval-after-load 'eglot-java
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l n") #'eglot-java-file-new)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l x") #'eglot-java-run-main)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l t") #'eglot-java-run-test)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l N") #'eglot-java-project-new)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l T") #'eglot-java-project-build-task)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l R") ;;#'eglot-java-project-build-refresh))
+
+#+end_src
+
+* ORG Mode
+
+
+** toc-org
+Tabla de contenidos org.
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package toc-org :ensure t
+    :commands toc-org-enable
+    :init (add-hook 'org-mode-hook 'toc-org-enable))
+#+end_src
+
+** Facha
+Para que tire facha el org. Bullets cambia los marcadores de niveles * ** .. etc.
+add-hook
+#+begin_src emacs-lisp :tangle "init.el"
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (use-package org-bullets :ensure t)
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+  (setq org-hide-emphasis-markers t)
+#+end_src
+
+** Org-babel
+Lenguajes que reconozca org mode en bloques de codigo. Plantuml, etc
+*** plantuml
+genera bloques plant uml
+#+begin_src emacs-lisp :tangle "init.el"
+  (use-package plantuml-mode :ensure t)
+  (setq org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml/plantuml.jar"))
+  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((scheme . t)
+     (plantuml . t)))
+#+end_src
+
+
+** Forzar TODO a padre
+#+begin_src emacs-lisp :tangle "init.el"
+  (setq-default org-enforce-todo-dependencies t)
+#+end_src
+
+** Imagenes por defecto
+Para que org muestre imagenes en vez de links
+#+begin_src emacs-lisp :tangle "init.el"
+  (setq org-startup-with-inline-images t)
+  (add-hook 'org-mode-hook 'org-display-inline-images)
+#+end_src
+
+
+* GUI
+** Fuentes
+#+begin_src emacs-lisp :tangle "init.el"
+  (set-language-environment "UTF-8")
+  (set-default-coding-systems 'utf-8)
+  (setq-default line-spacing 0.12)
+  (set-face-attribute 'default nil :family "Mononoki Nerd Font" :height 150)
+  (set-face-attribute 'org-block nil :family "Iosevka Nerd Font")
+#+end_src
+
+** Temas y colorcitos
+#+begin_src emacs-lisp :tangle "init.el"
+  (setq tema-claro 'doom-tomorrow-day)
+  (setq tema-oscuro 'doom-dracula)
+
+  (use-package doom-themes
+    :ensure t
+    :config
+    (setq doom-themes-enable-bold t
+          doom-themes-enable-italic t)
+    (load-theme tema-claro t)
+    (doom-themes-visual-bell-config)
+    (doom-themes-org-config))
+
+  (use-package rainbow-mode :ensure t :hook (emacs-lisp-mode text-mode lisp-mode org-mode css-mode conf-mode))
+
+  (defun cambiar-tema ()
+    (interactive)
+    (if (custom-theme-enabled-p tema-oscuro)
+        (progn
+          (disable-theme tema-oscuro)
+          (load-theme tema-claro t))
+      (progn
+        (disable-theme tema-claro)
+        (load-theme tema-oscuro t))))
+
+  (global-set-key (kbd "C-c t") 'cambiar-tema)
+
+  (use-package rainbow-identifiers :ensure t)
+  (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+#+end_src
