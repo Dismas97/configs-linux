@@ -7,12 +7,11 @@
 
 Este archivo  documenta mi config personal de emacs. Esta config apunta a moldear Emacs para convertirlo en una plataforma unificada de desarrollo y documentacion.
 
-Deberia proporcionar las herramientas basicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas basicas para la documentacion de software (generar diagramas uml, etc) y herramientas para la gestion organizacional y personal.
+Deberia proporcionar las herramientas basicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas basicas para la documentacion de software (generar diagramas uml, bpmn, etc) y herramientas para la gestion organizacional y personal (agenda, todo).
 
-Dado que Emacs es facilmente extensible y cuenta con innumerables paquetes es una eleccion apropiada como plataforma, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP y nos da la mayoria de funcionalidades de una IDE, etc.
+Dado que Emacs es facilmente extensible y cuenta con innumerables paquetes considero que es una eleccion apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP y nos da la mayoria de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
 
-Se busca que el resultado final sea consistente y accesible, configuraciones respecto a combinaciones de teclas, mostrar buffers, etc. deberian respetar un formato.
-
+Se busca que el resultado final sea consistente y accesible. Configuraciones respecto a combinaciones de teclas, navegacion entre buffers, etc. deberian respetar un formato estandarizado.
 
 * TABLA DE CONTENIDOS                                                 :toc:
 - [[#pendiente][Pendiente]]
@@ -21,6 +20,9 @@ Se busca que el resultado final sea consistente y accesible, configuraciones res
   - [[#edicion-colaborativa][Edicion colaborativa]]
   - [[#configurar-org-agenda][Configurar Org Agenda]]
   - [[#ampliar-explicaciones-config][Ampliar explicaciones config]]
+- [[#guia-rapida][Guia Rapida]]
+  - [[#lista-de-comandos-basicos][Lista de comandos basicos]]
+  - [[#autoguardado][Autoguardado]]
 - [[#configuracion-basica][Configuracion Basica]]
   - [[#config-basica][Config Basica]]
   - [[#desactivar-barra-de-menu-scroll-pagina-inicio][Desactivar barra de menu, scroll, pagina inicio]]
@@ -50,8 +52,6 @@ Se busca que el resultado final sea consistente y accesible, configuraciones res
 * TODO Pendiente
 ** TODO Agregar intro a esta config
 A que aspiro con esta config, uso basico, etc.
-*** TODO Pasar a limpio tutorial emacs
-El tutorial esta bueno, podria resumir y anotar bindeos mas utiles.
 ** TODO Separar bindeos
 En una seccion aparte de este mismo org o en un archivo aparte.
 *** TODO Definir formato propio de bindeos
@@ -62,7 +62,70 @@ Como hago edicion colaborativa en emacs? A lo google docs, averiguar paquetes: *
 Como se usa? Como agrego TODOS a una lista global? como veo dicha lista? como les pongo fecha limite? puedo compartir esa lista? etc.
 ** TODO Ampliar explicaciones config
 Esto, explayarme mas con lo que hago en cada segmento de codigo
-    
+
+* Guia Rapida
+Al abrir o crear un archivo en emacs realmente estamos trabajando con un *Buffer*, cualquier modificacion que hagamos seran aplicadas al buffer y no al archivo, solo cuando realizamos un guardado es que emacs escribe el buffer a disco. Emacs utiliza un *mini buffer* para notificar informacion importante al usuario y para leer inputs para comandos (por ejemplo palabras a buscar en un buffer).
+
+Los comandos en emacs involucran la tecla =CONTROL= y la tecla =ALT= o =META=. La combinacion de dichas teclas con otras nos permite ejecutar comandos y prefijos en emacs. El comando mas importante y util es =M-x= el cual nos permite ejecutar comandos por nombre, cuando no recordemos la combinacion de un comando en particular. Emacs utiliza =C-x= como *comando extendido* el cual sirve como prefijo de muchos comandos importantes como =C-x C-f= el cual nos permite buscar y crear archivos, =C-x C-s= el cual guarda los cambios del buffer actual, =C-x C-c= cierra la sesion actual de emacs.
+
+** Lista de comandos basicos
+
+=C-h t= abre el tutorial de emacs.
+=C-h ?= abre guia interna de emacs.
+=C-h c <comando>= muestra la funcion a la que llama el comando dado.
+=C-h k <comando>= muestra documentacion de la funcion que llama el comando dado.
+=C-h v= muestra documentacion de variables de emacs (como el kill ring por ej)
+=C-h i= abre los manuales incluidos en emacs.
+=C-= y =M-= se refieren a la letra control/alt combinada con un caracter dado.
+=C-x C-c= cierra la sesion actual de emacs.
+=C-x C-s= guarda los cambios del buffer actual al archivo.
+=C-x C-b= lista todos los buffers abiertos.
+=C-x b= cambia al buffer dado.
+=C-x k= cierra el buffer dado.
+=C-x ->=, =C-x <-= cambia al siguiente/anterior buffer en la lista de buffers.
+=C-x s= guarda los cambios en todos los buffers abiertos, emacs te consulta en cada buffer si queres guardar los cambios.
+=M-x= ejecutar comando por nombre.
+=C-g= cancela el comando actual, permite descartar una combinacion de teclas que todavia no se ha resuelto en un comando.
+
+=C-l= mueve el texto alrededor del cursor.
+=C-s=, =C-r= realiza una busqueda incremental hacia adelante/atras en el buffer actual, se ingresa la palabra a buscar en el minibufer, consecutivos =C-s=, =C-r= mueven el cursor a la siguiente/anterior coincidencia la busqueda se termina con =Enter=.
+=C-v= realiza un salto a la siguiente pagina del buffer (como =AvPag=).
+=M-v= realiza un salto a la pagina anterior del buffer (como =RePag=).
+=C-p=, =C-n= mueve el cursor a la linea anterior/siguiente respectivamente.
+=C-b=, =C-f= mueve el cursor un caracter hacia atras/adelante respectivamente.
+=M-b=, =M-f= mueve el cursor una palabra hacia atras/adelante respectivamente.
+=C-a=, =C-e= mueve el cursor al principio/final de la linea.
+=M-a=, =M-e= mueve el cursor al principio/final de la sentencia.
+
+Emacs guarda en el *kill ring* los elementos que fue copiando/cortando, es una lista circular, funciona como un *porta papeles*.
+
+=C-w= cortar texto seleccionado.
+=M-w= copiar texto seleccionado.
+=C-y= pegar el ultimo elemento que fue copiado/cortado en el *kill ring*.
+=M-y= pega el elemento seleccionado del *kill ring*, usos sucesivos del comando inmediatamente despues de haber usado =C-y= permite cambiar el texto pegado iterando en los elementos del *kill ring*.
+=C-k= corta desde la posicion del cursor hasta el final de la linea.
+=M-k= corta desde la posicion del cursor hasta el final de la sentencia.
+=C-d= elimina el siguiente carater desde la posicion del cursor.
+=M-d= elimina la siguiente palabra desde la posicion del cursor.
+=M-<DEL>= elimina la anterior palabra desde la posicion del cursor.
+=C-<SPC>= permite seleccionar un area con el cursor.
+
+=C-/=, =C-_=, =C-x y= restaura el ultimo cambio.
+
+Emacs permite tener *ventanas* que muestren distintos textos, para navegar y manipular ventanas algunos comandos utiles son:
+
+=C-x 0= cierra la ventana enfocada.
+=C-x 1= cierra todas las ventanas menos la ventana enfocada.
+=C-x 2= divide la ventana actual de forma vertical.
+=C-x 3= divide la ventana actual de forma horizontal.
+=C-x 4 f= abre el archivo seleccionado en otra ventana.
+=C-x o= mueve el cursor a la siguiente ventana de manera circular
+=C-M-v=, =C-M-<SHIFT>-v= hace un salto de pagina hacia adelante/atras en la ventana no enfocada
+
+** Autoguardado
+Emacs genera automaticamente un archivo #nombrearchiv.extencion# de autoguardado, si por algun motivo se cierra la sesion sin guardar el buffer. La proxima vez que abramos el mismo archivo que se nos cerro de forma inesperada podemos recuperar el trabajo con =M-x recover-this-file=, luego emacs nos preguntara una confirmacion. Una vez guardemos el buffer en un archivo el archivo de autoguardado automaticamente se borrara.
+
+
 * Configuracion Basica
 ** Config Basica
 Abrir Config.org =C-c c=
@@ -226,7 +289,6 @@ Algunas definiciones de snippets para org-mode, tangle a init.el, a directorio, 
                        )
 
 #+end_src
-
 
 ** Flycheck, Quickrun
 Flycheck le da una UI al debuguer/errores de sintaxys/etc numero linea con error, subrayar variable con error,etc.
