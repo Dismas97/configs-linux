@@ -1,19 +1,21 @@
 #+TITLE: Config Emacs
 #+AUTHOR: fran
 #+LANGUAGE: es
-#+STARTUP: content indent
+#+STARTUP: content indent showeverything
 #+DESCRIPTION: Configuracion personal de emacs para centralizar lo que es documentacion, desarrollo y edicion de texto en general.
 #+PROPERTY: header-args:emacs-lisp :tangle "init.el"
 
+* INTRODUCCION
 Este archivo  documenta mi config personal de emacs. Esta config apunta a moldear Emacs para convertirlo en una plataforma unificada de desarrollo y documentacion.
 
 Deberia proporcionar las herramientas basicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas basicas para la documentacion de software (generar diagramas uml, bpmn, etc) y herramientas para la gestion organizacional y personal (agenda, todo).
 
-Dado que Emacs es facilmente extensible y cuenta con innumerables paquetes considero que es una eleccion apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP y nos da la mayoria de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
+Dado que Emacs es facilmente extensible y cuenta con innumerables paquetes considero que es una eleccion apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP(Lenguaje server protocol) y nos da la mayoria de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
 
 Se busca que el resultado final sea consistente y accesible. Configuraciones respecto a combinaciones de teclas, navegacion entre buffers, etc. deberian respetar un formato estandarizado.
 
 * TABLA DE CONTENIDOS                                                 :toc:
+- [[#introduccion][INTRODUCCION]]
 - [[#pendiente][Pendiente]]
   - [[#agregar-intro-a-esta-config][Agregar intro a esta config]]
   - [[#separar-bindeos][Separar bindeos]]
@@ -28,26 +30,15 @@ Se busca que el resultado final sea consistente y accesible. Configuraciones res
   - [[#desactivar-barra-de-menu-scroll-pagina-inicio][Desactivar barra de menu, scroll, pagina inicio]]
   - [[#cambiar-directorio-de-backups][Cambiar directorio de backups.]]
   - [[#acciones-al-guardar-este-archivo][Acciones al guardar este archivo]]
-- [[#paquetes][Paquetes]]
-  - [[#gestor-de-paquetes][Gestor de paquetes]]
-  - [[#vertico][Vertico]]
-  - [[#corfu][Corfu]]
-  - [[#which-key][Which-key]]
-  - [[#marginalia][Marginalia]]
-  - [[#orderless][Orderless]]
-  - [[#projectile][Projectile]]
-  - [[#snippets][Snippets]]
-  - [[#flycheck-quickrun][Flycheck, Quickrun]]
-  - [[#devdocs][Devdocs]]
-  - [[#eglot][Eglot]]
 - [[#org-mode][ORG Mode]]
   - [[#config-basica-1][Config basica]]
-  - [[#toc-org][toc-org]]
-  - [[#facha][Facha]]
-  - [[#org-babel][Org-babel]]
 - [[#gui][GUI]]
   - [[#fuentes][Fuentes]]
   - [[#temas-y-colorcitos][Temas y colorcitos]]
+- [[#paquetes][Paquetes]]
+  - [[#paquetes-esenciales][Paquetes esenciales]]
+  - [[#paquetues-desarrollo][Paquetues desarrollo]]
+  - [[#paquetes-org][Paquetes ORG]]
 
 * TODO Pendiente
 ** TODO Agregar intro a esta config
@@ -114,7 +105,7 @@ Emacs guarda en el *kill ring* los elementos que fue copiando/cortando, es una l
 
 Emacs permite tener *ventanas* que muestren distintos textos, para navegar y manipular ventanas algunos comandos utiles son:
 
-=C-x 0= cierra la ventana enfocada.
+e=C-x 0= cierra la ventana enfocada.
 =C-x 1= cierra todas las ventanas menos la ventana enfocada.
 =C-x 2= divide la ventana actual de forma vertical.
 =C-x 3= divide la ventana actual de forma horizontal.
@@ -124,7 +115,6 @@ Emacs permite tener *ventanas* que muestren distintos textos, para navegar y man
 
 ** Autoguardado
 Emacs genera automaticamente un archivo #nombrearchiv.extencion# de autoguardado, si por algun motivo se cierra la sesion sin guardar el buffer. La proxima vez que abramos el mismo archivo que se nos cerro de forma inesperada podemos recuperar el trabajo con =M-x recover-this-file=, luego emacs nos preguntara una confirmacion. Una vez guardemos el buffer en un archivo el archivo de autoguardado automaticamente se borrara.
-
 
 * Configuracion Basica
 ** Config Basica
@@ -173,170 +163,6 @@ Lo mismo que hacer =C-c C-v t=.
   (add-hook 'after-save-hook 'fran/auto-tangle)
 #+end_src
 
-* Paquetes
-** Gestor de paquetes
-Inicializo el gestor de paquetes por defecto de emacs, agrego repos melpa y gnu, inicializo use-package.
-#+begin_src emacs-lisp
-  (require 'package)
-  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                           ("gnu" . "https://elpa.gnu.org/packages/")))
-  (package-initialize)
-
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
-  (require 'use-package)
-#+end_src
-
-** Vertico
-Vertico es una UI para el autocompletado del minibuffer.
-#+begin_src emacs-lisp
-  (use-package vertico :ensure t
-    :custom
-    (vertico-scroll-margin 0)
-    (vertico-count 20)
-    (vertico-resize t)
-    (vertico-cycle t)
-    :init
-    (vertico-mode))
-  (keymap-set vertico-map "<left>" #'vertico-directory-up)
-  (keymap-set vertico-map "<right>" #'vertico-insert)
-#+end_src
-
-** Corfu
-UI autocompletado de buffer (codigo).
-#+begin_src emacs-lisp
-  (use-package corfu :ensure t
-    :hook
-    (corfu-mode . corfu-popupinfo-mode)
-    :custom
-    (corfu-auto t)
-    (corfu-cycle t)
-    (corfu-resize t)
-    (corfu-auto-delay 0.25)
-    (corfu-auto-prefix 1)
-    (corfu-preview-current nil)
-    ;; Recommended: Enable Corfu globally.  This is recommended since Dabbrev can
-    ;; be used globally (M-/).  See also the customization variable
-    ;; `global-corfu-modes' to exclude certain modes.
-    :init
-    (global-corfu-mode)
-    )
-  (keymap-set corfu-map "TAB" #'corfu-next)
-  (keymap-set corfu-map "<backtab>" #'corfu-previous)
-  (setq corfu-popupinfo-delay 0.2)
-
-  (with-eval-after-load 'corfu
-    (define-key corfu-map (kbd "<next>") #'corfu-popupinfo-scroll-up)
-    (define-key corfu-map (kbd "<prior>") #'corfu-popupinfo-scroll-down))
-
-#+end_src
-
-** Which-key
-Muestra opciones de autocompletado para comandos.
-#+begin_src emacs-lisp
-  (use-package which-key :ensure t :config (which-key-mode))
-#+end_src
-
-** Marginalia
-Muestra metadatos en el minibuffer (info de comandos, permisos de archivos, etc).
-#+begin_src emacs-lisp
-  (use-package marginalia :ensure t
-    :init
-    (marginalia-mode))
-#+end_src
-
-** Orderless
-Agrega busqueda sin orden en los autocompletados.
-#+begin_src emacs-lisp
-  (use-package orderless
-    :ensure t
-    :custom
-    (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles basic partial-completion)))))
-#+end_src
-
-** Projectile
-Mejora la gestion de proyectos, busqueda de archivo en el proyecto, compilacion, etc.
-#+begin_src emacs-lisp
-  (use-package projectile :ensure t :init (projectile-mode +1)
-    :config (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
-#+end_src
-
-** Snippets
-Yasnippet es para snipets en emacs.
-Algunas definiciones de snippets para org-mode, tangle a init.el, a directorio, etc.
-#+begin_src emacs-lisp
-  (use-package yasnippet :ensure t :config (yas-global-mode 1))
-
-  (yas-define-snippets 'org-mode
-                       '(("eli" "#+begin_src emacs-lisp :tangle \"init.el\"\n\n#+end_src"
-                          "Bloque de codigo emacs-lisp con tangle a init.el" nil nil nil "~/.emacs.d/snippets/elt" nil nil)
-
-                         ("ela" "#+begin_src emacs-lisp :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
-                          "Bloque de codigo emacs-lisp con tangle a $archivo" nil nil nil "~/.emacs.d/snippets/ela" nil nil)
-
-                         ("suml" "#+begin_src plantuml :file \"${1:archivo}\"\n\n#+end_src"
-                          "Bloque de codigo plantuml, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/suml" nil nil)
-
-                         ("sjava" "#+begin_src java :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
-                          "Bloque de codigo java, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/java" nil nil)
-
-                         ("sscm" "#+begin_src scheme \n${1:}\n#+end_src"
-                          "Bloque de codigo scheme" nil nil nil "~/.emacs.d/snippets/scheme" nil nil)
-
-                         )
-                       )
-
-#+end_src
-
-** Flycheck, Quickrun
-Flycheck le da una UI al debuguer/errores de sintaxys/etc numero linea con error, subrayar variable con error,etc.
-Quickrun es para hacer ejecucciones de codigo en el buffer.
-
-#+begin_src emacs-lisp
-  (use-package yasnippet-snippets :ensure t)
-  (use-package flycheck :ensure t :init (global-flycheck-mode))
-  (use-package quickrun  :ensure t :bind ("C-c r" . quickrun))
-#+end_src
-
-** Devdocs
-Le pega a la api de devdocs, cantidad de documentacion cantidad.
-#+begin_src emacs-lisp
-  (use-package devdocs :ensure t)
-  (global-set-key (kbd "C-h D") 'devdocs-lookup)
-#+end_src
-
-** Eglot
-LSP de emacs, configurado con algunos lenguajes.
-#+begin_src emacs-lisp
-  (use-package eglot
-    ;; :bind (:map eglot-mode-map
-    ;;             ("C-c e f n" . flymake-goto-next-error)
-    ;;             ("C-c e f p" . flymake-goto-prev-error)
-    ;;             ("C-c e r" . eglot-rename)
-    ;;             ("C-c e f r" . eglot-format)
-    ;;             ("C-c e f b" . eglot-format-buffer)
-    ;;             ("C-c e a" . eglot-code-actions))
-    :hook
-    ((c-mode . eglot-ensure)
-     (c++-mode . eglot-ensure))
-    :custom
-    (fset #'jsonrpc--log-event #'ignore)
-    (eglot-events-buffer-size 0))
-  (setq eglot-autoshutdown t)
-
-  (add-hook 'java-mode-hook 'eglot-java-mode)
-  ;;(with-eval-after-load 'eglot-java
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l n") #'eglot-java-file-new)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l x") #'eglot-java-run-main)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l t") #'eglot-java-run-test)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l N") #'eglot-java-project-new)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l T") #'eglot-java-project-build-task)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l R") ;;#'eglot-java-project-build-refresh))
-
-#+end_src
-
 * ORG Mode
 ** Config basica
 #+begin_src emacs-lisp
@@ -344,37 +170,21 @@ LSP de emacs, configurado con algunos lenguajes.
   (setq org-startup-with-inline-images t) ; Muestra las imagenes por defecto, en vez de mostrar links
   (add-hook 'org-mode-hook 'org-display-inline-images) ; cuando creo un archivo desde el org mode (por ejemplo una img como resultado de plant uml) actualiza todas las imagenes
 #+end_src
-** toc-org
-Tabla de contenidos org.
-#+begin_src emacs-lisp
-  (use-package toc-org :ensure t
-    :commands toc-org-enable
-    :init (add-hook 'org-mode-hook 'toc-org-enable))
+
+Inicializando org agenda, en mi caso guardo mis org en mi carpeta organizacion.
+#+begin_src emacs-lisp 
+(setq org-agenda-files (list "~/Organizacion/Tareas.org"))
 #+end_src
 
-** Facha
+
 Para que tire facha el org. Bullets cambia los marcadores de niveles * ** .. etc.
 add-hook
-#+begin_src emacs-lisp
-  (add-hook 'org-mode-hook 'org-indent-mode)
+begin_src emacs-lisp
+ (add-hook 'org-mode-hook 'org-indent-mode)
   (use-package org-bullets :ensure t)
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
   (setq org-hide-emphasis-markers t)
-#+end_src
-
-** Org-babel
-Lenguajes que reconozca org mode en bloques de codigo. Plantuml, etc
-*** plantuml
-genera bloques plant uml
-#+begin_src emacs-lisp
-  (use-package plantuml-mode :ensure t)
-  (setq org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml/plantuml.jar"))
-  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((scheme . t)
-     (plantuml . t)))
-#+end_src
+end_src
 
 * GUI
 ** Fuentes
@@ -383,7 +193,7 @@ genera bloques plant uml
   (set-default-coding-systems 'utf-8)
   (setq-default line-spacing 0.12)
   (set-face-attribute 'default nil :family "Mononoki Nerd Font" :height 150)
-  (set-face-attribute 'org-block nil :family "Iosevka Nerd Font")
+ ; (set-face-attribute 'org-block nil :family "Iosevka Nerd Font")
 #+end_src
 
 ** Temas y colorcitos
@@ -416,4 +226,183 @@ genera bloques plant uml
 
   (use-package rainbow-identifiers :ensure t)
   (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+  
+#+end_src
+
+
+* Paquetes
+** Paquetes esenciales
+*** Gestor de paquetes
+Inicializo el gestor de paquetes por defecto de emacs, agrego repos melpa y gnu, inicializo use-package.
+#+begin_src emacs-lisp
+  (require 'package)
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("gnu" . "https://elpa.gnu.org/packages/")))
+  (package-initialize)
+
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+  (require 'use-package)
+#+end_src
+
+*** Paquetes que mejoran la experiencia en emacs
+Vertico es una UI para el autocompletado del minibuffer.
+#+begin_src emacs-lisp
+  (use-package vertico :ensure t
+    :custom
+    (vertico-scroll-margin 0)
+    (vertico-count 20)
+    (vertico-resize t)
+    (vertico-cycle t)
+    :init
+    (vertico-mode))
+  (keymap-set vertico-map "<left>" #'vertico-directory-up)
+  (keymap-set vertico-map "<right>" #'vertico-insert)
+#+end_src
+
+Corfu, UI autocompletado de buffer (codigo).
+#+begin_src emacs-lisp
+  (use-package corfu :ensure t
+    :hook
+    (corfu-mode . corfu-popupinfo-mode)
+    :custom
+    (corfu-auto t)
+    (corfu-cycle t)
+    (corfu-resize t)
+    (corfu-auto-delay 0.25)
+    (corfu-auto-prefix 1)
+    (corfu-preview-current nil)
+    ;; Recommended: Enable Corfu globally.  This is recommended since Dabbrev can
+    ;; be used globally (M-/).  See also the customization variable
+    ;; `global-corfu-modes' to exclude certain modes.
+    :init
+    (global-corfu-mode))
+  (keymap-set corfu-map "TAB" #'corfu-next)
+  (keymap-set corfu-map "<backtab>" #'corfu-previous)
+  (setq corfu-popupinfo-delay 0.2)
+
+  (with-eval-after-load 'corfu
+    (define-key corfu-map (kbd "<next>") #'corfu-popupinfo-scroll-up)
+    (define-key corfu-map (kbd "<prior>") #'corfu-popupinfo-scroll-down))
+
+#+end_src
+
+Which-key, muestra opciones de autocompletado para comandos.
+#+begin_src emacs-lisp
+  (use-package which-key :ensure t :config (which-key-mode))
+#+end_src
+
+Marginalia, muestra metadatos en el minibuffer (info de comandos, permisos de archivos, etc).
+#+begin_src emacs-lisp
+  (use-package marginalia :ensure t
+    :init
+    (marginalia-mode))
+#+end_src
+
+Orderless, agrega busqueda sin orden en los autocompletados.
+#+begin_src emacs-lisp
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+** Paquetues desarrollo
+Paquetes que proveen funcionalidades de IDE.
+
+#+begin_src emacs-lisp 
+  (use-package magit :ensure t)
+#+end_src
+
+Projectile, mejora la gestion de proyectos, busqueda de archivo en el proyecto, compilacion, etc.
+#+begin_src emacs-lisp
+  (use-package projectile :ensure t :init (projectile-mode +1)
+    :config (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+#+end_src
+
+Flycheck le da una UI al debuguer/errores de sintaxys/etc numero linea con error, subrayar variable con error,etc.
+Quickrun es para hacer ejecucciones de codigo en el buffer.
+#+begin_src emacs-lisp
+  (use-package yasnippet-snippets :ensure t)
+  (use-package flycheck :ensure t :init (global-flycheck-mode))
+  (use-package quickrun  :ensure t :bind ("C-c r" . quickrun))
+#+end_src
+
+Eglot, LSP de emacs, configurado con algunos lenguajes.
+#+begin_src emacs-lisp
+  (use-package eglot
+    ;; :bind (:map eglot-mode-map
+    ;;             ("C-c e f n" . flymake-goto-next-error)
+    ;;             ("C-c e f p" . flymake-goto-prev-error)
+    ;;             ("C-c e r" . eglot-rename)
+    ;;             ("C-c e f r" . eglot-format)
+    ;;             ("C-c e f b" . eglot-format-buffer)
+    ;;             ("C-c e a" . eglot-code-actions))
+    :hook
+    ((c-mode . eglot-ensure)
+     (c++-mode . eglot-ensure))
+    :custom
+    (fset #'jsonrpc--log-event #'ignore)
+    (eglot-events-buffer-size 0))
+  (setq eglot-autoshutdown t)
+
+  (add-hook 'java-mode-hook 'eglot-java-mode)
+  ;;(with-eval-after-load 'eglot-java
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l n") #'eglot-java-file-new)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l x") #'eglot-java-run-main)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l t") #'eglot-java-run-test)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l N") #'eglot-java-project-new)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l T") #'eglot-java-project-build-task)
+  ;;  (define-key eglot-java-mode-map (kbd "C-c l R") ;;#'eglot-java-project-build-refresh))
+#+end_src
+
+Yasnippet, permite definir snippets en emacs, viene con varios por defecto.
+Algunas definiciones de snippets para org-mode, tangle archivo, a directorio, etc.
+#+begin_src emacs-lisp
+  (use-package yasnippet :ensure t :config (yas-global-mode 1))
+
+  (yas-define-snippets 'org-mode
+                       '(("eli" "#+begin_src emacs-lisp \n${1:}\n#+end_src"
+                          "Bloque de codigo emacs-lisp" nil nil nil "~/.emacs.d/snippets/elt" nil nil)
+
+                         ("ela" "#+begin_src emacs-lisp :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
+                          "Bloque de codigo emacs-lisp con tangle a $archivo" nil nil nil "~/.emacs.d/snippets/ela" nil nil)
+
+                         ("suml" "#+begin_src plantuml :file \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
+                          "Bloque de codigo plantuml, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/suml" nil nil)
+
+                         ("sjav" "#+begin_src java :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
+                          "Bloque de codigo java, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/java" nil nil)
+
+                         ("sscm" "#+begin_src scheme \n${1:}\n#+end_src"
+                          "Bloque de codigo scheme" nil nil nil "~/.emacs.d/snippets/scheme" nil nil)))
+
+#+end_src
+
+Le pega a la api de devdocs, documentacion de muchisimos lenguajes.
+#+begin_src emacs-lisp
+  (use-package devdocs :ensure t)
+  (global-set-key (kbd "C-h D") 'devdocs-lookup)
+#+end_src
+
+
+** Paquetes ORG
+Tabla de contenidos org.
+#+begin_src emacs-lisp
+  (use-package toc-org :ensure t
+    :commands toc-org-enable
+    :init (add-hook 'org-mode-hook 'toc-org-enable))
+#+end_src
+
+Plantum, genera diagramas UML desde codigo plant uml ejecutado con org-babel
+#+begin_src emacs-lisp
+  (use-package plantuml-mode :ensure t)
+  (setq org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml/plantuml.jar"))
+  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((scheme . t)
+     (plantuml . t)))
 #+end_src
