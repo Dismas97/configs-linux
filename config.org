@@ -37,7 +37,7 @@ Se busca que el resultado final sea consistente y accesible. Configuraciones res
   - [[#temas-y-colorcitos][Temas y colorcitos]]
 - [[#paquetes][Paquetes]]
   - [[#paquetes-esenciales][Paquetes esenciales]]
-  - [[#paquetues-desarrollo][Paquetues desarrollo]]
+  - [[#paquetes-desarrollo][Paquetes desarrollo]]
   - [[#paquetes-org][Paquetes ORG]]
 
 * TODO Pendiente
@@ -169,22 +169,25 @@ Lo mismo que hacer =C-c C-v t=.
   (setq-default org-enforce-todo-dependencies t) ; fuerza TODO al padre de un item
   (setq org-startup-with-inline-images t) ; Muestra las imagenes por defecto, en vez de mostrar links
   (add-hook 'org-mode-hook 'org-display-inline-images) ; cuando creo un archivo desde el org mode (por ejemplo una img como resultado de plant uml) actualiza todas las imagenes
-#+end_src
-
-Inicializando org agenda, en mi caso guardo mis org en mi carpeta organizacion.
-#+begin_src emacs-lisp 
-(setq org-agenda-files (list "~/Organizacion/Tareas.org"))
+  (setq org-M-RET-may-split-line '((default . nil))) ; M-RET es para crear nuevo headline, item lista, subnivel, etc del nivel actual
+  (setq org-insert-heading-respect-content t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+  
+  (setq tareas-dir "~/Organizacion/")
+  (setq org-agenda-files (list tareas-dir))
 #+end_src
 
 
 Para que tire facha el org. Bullets cambia los marcadores de niveles * ** .. etc.
 add-hook
-begin_src emacs-lisp
- (add-hook 'org-mode-hook 'org-indent-mode)
-  (use-package org-bullets :ensure t)
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  (setq org-hide-emphasis-markers t)
-end_src
+
++begin_src emacs-lisp
+(add-hook 'org-mode-hook 'org-indent-mode)
+(use-package org-bullets :ensure t)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+(setq org-hide-emphasis-markers t)
++end_src
 
 * GUI
 ** Fuentes
@@ -193,42 +196,43 @@ end_src
   (set-default-coding-systems 'utf-8)
   (setq-default line-spacing 0.12)
   (set-face-attribute 'default nil :family "Mononoki Nerd Font" :height 150)
- ; (set-face-attribute 'org-block nil :family "Iosevka Nerd Font")
+                                          ; (set-face-attribute 'org-block nil :family "Iosevka Nerd Font")
 #+end_src
 
 ** Temas y colorcitos
 #+begin_src emacs-lisp
-  (setq tema-claro 'doom-tomorrow-day)
-  (setq tema-oscuro 'doom-dracula)
+  (defvar lista-temas '(doom-tomorrow-day doom-dracula doom-fairy-floss doom-gruvbox doom-solarized-light doom-laserwave))
+  (defvar aux-temas 0)
+  
+  (setq tema-aux (nth  aux-temas lista-temas))
+  (setq tema-actual (nth aux-temas lista-temas))
+    (defun cambiar-tema ()
+    (interactive)
+    (progn
+      (setq tema-aux tema-actual)
+      (setq aux-temas (mod (1+ aux-temas) (length lista-temas)))
+      (setq tema-actual (nth aux-temas lista-temas))
+      (disable-theme tema-aux)
+      (load-theme tema-actual t)))
+
+  (global-set-key (kbd "C-c t") 'cambiar-tema)
 
   (use-package doom-themes
     :ensure t
     :config
     (setq doom-themes-enable-bold t
           doom-themes-enable-italic t)
-    (load-theme tema-claro t)
+    (load-theme tema-actual t)
     (doom-themes-visual-bell-config)
     (doom-themes-org-config))
 
   (use-package rainbow-mode :ensure t :hook (emacs-lisp-mode text-mode lisp-mode org-mode css-mode conf-mode))
 
-  (defun cambiar-tema ()
-    (interactive)
-    (if (custom-theme-enabled-p tema-oscuro)
-        (progn
-          (disable-theme tema-oscuro)
-          (load-theme tema-claro t))
-      (progn
-        (disable-theme tema-claro)
-        (load-theme tema-oscuro t))))
-
-  (global-set-key (kbd "C-c t") 'cambiar-tema)
 
   (use-package rainbow-identifiers :ensure t)
   (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
-  
-#+end_src
 
+#+end_src
 
 * Paquetes
 ** Paquetes esenciales
@@ -309,7 +313,7 @@ Orderless, agrega busqueda sin orden en los autocompletados.
     (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 
-** Paquetues desarrollo
+** Paquetes desarrollo
 Paquetes que proveen funcionalidades de IDE.
 
 #+begin_src emacs-lisp 
@@ -386,7 +390,6 @@ Le pega a la api de devdocs, documentacion de muchisimos lenguajes.
   (use-package devdocs :ensure t)
   (global-set-key (kbd "C-h D") 'devdocs-lookup)
 #+end_src
-
 
 ** Paquetes ORG
 Tabla de contenidos org.
