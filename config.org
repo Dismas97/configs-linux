@@ -5,7 +5,7 @@
 #+DESCRIPTION: Configuracion personal de emacs para centralizar lo que es documentacion, desarrollo y edicion de texto en general.
 #+PROPERTY: header-args:emacs-lisp :tangle "init.el"
 
-* INTRODUCCION
+* Introduccion
 Este archivo  documenta mi config personal de emacs. Esta config apunta a moldear Emacs para convertirlo en una plataforma unificada de desarrollo y documentacion.
 
 Deberia proporcionar las herramientas basicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas basicas para la documentacion de software (generar diagramas uml, bpmn, etc) y herramientas para la gestion organizacional y personal (agenda, todo).
@@ -13,33 +13,6 @@ Deberia proporcionar las herramientas basicas de una IDE al desarrollar en un le
 Dado que Emacs es facilmente extensible y cuenta con innumerables paquetes considero que es una eleccion apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP(Lenguaje server protocol) y nos da la mayoria de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
 
 Se busca que el resultado final sea consistente y accesible. Configuraciones respecto a combinaciones de teclas, navegacion entre buffers, etc. deberian respetar un formato estandarizado.
-
-* TABLA DE CONTENIDOS                                                 :toc:
-- [[#introduccion][INTRODUCCION]]
-- [[#pendiente][Pendiente]]
-  - [[#agregar-intro-a-esta-config][Agregar intro a esta config]]
-  - [[#separar-bindeos][Separar bindeos]]
-  - [[#edicion-colaborativa][Edicion colaborativa]]
-  - [[#configurar-org-agenda][Configurar Org Agenda]]
-  - [[#ampliar-explicaciones-config][Ampliar explicaciones config]]
-- [[#guia-rapida][Guia Rapida]]
-  - [[#lista-de-comandos-basicos][Lista de comandos basicos]]
-  - [[#autoguardado][Autoguardado]]
-- [[#configuracion-basica][Configuracion Basica]]
-  - [[#config-basica][Config Basica]]
-  - [[#desactivar-barra-de-menu-scroll-pagina-inicio][Desactivar barra de menu, scroll, pagina inicio]]
-  - [[#cambiar-directorio-de-backups][Cambiar directorio de backups.]]
-  - [[#acciones-al-guardar-este-archivo][Acciones al guardar este archivo]]
-- [[#org-mode][ORG Mode]]
-  - [[#config-basica-1][Config basica]]
-- [[#gui][GUI]]
-  - [[#fuentes][Fuentes]]
-  - [[#temas-y-colorcitos][Temas y colorcitos]]
-- [[#paquetes][Paquetes]]
-  - [[#paquetes-esenciales][Paquetes esenciales]]
-  - [[#paquetes-desarrollo][Paquetes desarrollo]]
-  - [[#paquetes-org][Paquetes ORG]]
-
 * TODO Pendiente
 ** TODO Agregar intro a esta config
 A que aspiro con esta config, uso basico, etc.
@@ -54,72 +27,65 @@ Como se usa? Como agrego TODOS a una lista global? como veo dicha lista? como le
 ** TODO Ampliar explicaciones config
 Esto, explayarme mas con lo que hago en cada segmento de codigo
 
-* Guia Rapida
+* Guia Rapida :guia:keys:
 Al abrir o crear un archivo en emacs realmente estamos trabajando con un *Buffer*, cualquier modificacion que hagamos seran aplicadas al buffer y no al archivo, solo cuando realizamos un guardado es que emacs escribe el buffer a disco. Emacs utiliza un *mini buffer* para notificar informacion importante al usuario y para leer inputs para comandos (por ejemplo palabras a buscar en un buffer).
 
 Los comandos en emacs involucran la tecla =CONTROL= y la tecla =ALT= o =META=. La combinacion de dichas teclas con otras nos permite ejecutar comandos y prefijos en emacs. El comando mas importante y util es =M-x= el cual nos permite ejecutar comandos por nombre, cuando no recordemos la combinacion de un comando en particular. Emacs utiliza =C-x= como *comando extendido* el cual sirve como prefijo de muchos comandos importantes como =C-x C-f= el cual nos permite buscar y crear archivos, =C-x C-s= el cual guarda los cambios del buffer actual, =C-x C-c= cierra la sesion actual de emacs.
 
-** Lista de comandos basicos
-
-=C-h t= abre el tutorial de emacs.
-=C-h ?= abre guia interna de emacs.
-=C-h c <comando>= muestra la funcion a la que llama el comando dado.
-=C-h k <comando>= muestra documentacion de la funcion que llama el comando dado.
-=C-h v= muestra documentacion de variables de emacs (como el kill ring por ej)
-=C-h i= abre los manuales incluidos en emacs.
-=C-= y =M-= se refieren a la letra control/alt combinada con un caracter dado.
-=C-x C-c= cierra la sesion actual de emacs.
-=C-x C-s= guarda los cambios del buffer actual al archivo.
-=C-x C-b= lista todos los buffers abiertos.
-=C-x b= cambia al buffer dado.
-=C-x k= cierra el buffer dado.
-=C-x ->=, =C-x <-= cambia al siguiente/anterior buffer en la lista de buffers.
-=C-x s= guarda los cambios en todos los buffers abiertos, emacs te consulta en cada buffer si queres guardar los cambios.
-=M-x= ejecutar comando por nombre.
-=C-g= cancela el comando actual, permite descartar una combinacion de teclas que todavia no se ha resuelto en un comando.
-
-=C-l= mueve el texto alrededor del cursor.
-=C-s=, =C-r= realiza una busqueda incremental hacia adelante/atras en el buffer actual, se ingresa la palabra a buscar en el minibufer, consecutivos =C-s=, =C-r= mueven el cursor a la siguiente/anterior coincidencia la busqueda se termina con =Enter=.
-=C-v= realiza un salto a la siguiente pagina del buffer (como =AvPag=).
-=M-v= realiza un salto a la pagina anterior del buffer (como =RePag=).
-=C-p=, =C-n= mueve el cursor a la linea anterior/siguiente respectivamente.
-=C-b=, =C-f= mueve el cursor un caracter hacia atras/adelante respectivamente.
-=M-b=, =M-f= mueve el cursor una palabra hacia atras/adelante respectivamente.
-=C-a=, =C-e= mueve el cursor al principio/final de la linea.
-=M-a=, =M-e= mueve el cursor al principio/final de la sentencia.
-
 Emacs guarda en el *kill ring* los elementos que fue copiando/cortando, es una lista circular, funciona como un *porta papeles*.
 
-=C-w= cortar texto seleccionado.
-=M-w= copiar texto seleccionado.
-=C-y= pegar el ultimo elemento que fue copiado/cortado en el *kill ring*.
-=M-y= pega el elemento seleccionado del *kill ring*, usos sucesivos del comando inmediatamente despues de haber usado =C-y= permite cambiar el texto pegado iterando en los elementos del *kill ring*.
-=C-k= corta desde la posicion del cursor hasta el final de la linea.
-=M-k= corta desde la posicion del cursor hasta el final de la sentencia.
-=C-d= elimina el siguiente carater desde la posicion del cursor.
-=M-d= elimina la siguiente palabra desde la posicion del cursor.
-=M-<DEL>= elimina la anterior palabra desde la posicion del cursor.
-=C-<SPC>= permite seleccionar un area con el cursor.
-
-=C-/=, =C-_=, =C-x y= restaura el ultimo cambio.
-
-Emacs permite tener *ventanas* que muestren distintos textos, para navegar y manipular ventanas algunos comandos utiles son:
-
-e=C-x 0= cierra la ventana enfocada.
-=C-x 1= cierra todas las ventanas menos la ventana enfocada.
-=C-x 2= divide la ventana actual de forma vertical.
-=C-x 3= divide la ventana actual de forma horizontal.
-=C-x 4 f= abre el archivo seleccionado en otra ventana.
-=C-x o= mueve el cursor a la siguiente ventana de manera circular
-=C-M-v=, =C-M-<SHIFT>-v= hace un salto de pagina hacia adelante/atras en la ventana no enfocada
+** Lista de comandos basicos
+- =C-h t= abre el tutorial de emacs.
+- =C-h ?= abre guia interna de emacs.
+- =C-h c <comando>= muestra la funcion a la que llama el comando dado.
+- =C-h k <comando>= muestra documentacion de la funcion que llama el comando dado.
+- =C-h v= muestra documentacion de variables de emacs (como el kill ring por ej)
+- =C-h i= abre los manuales incluidos en emacs.
+- =C-= y =M-= se refieren a la letra control/alt combinada con un caracter dado.
+- =C-x C-c= cierra la sesion actual de emacs.
+- =C-x C-s= guarda los cambios del buffer actual al archivo.
+- =C-x C-b= lista todos los buffers abiertos.
+- =C-x b= cambia al buffer dado.
+- =C-x k= cierra el buffer dado.
+- =C-x ->=, =C-x <-= cambia al siguiente/anterior buffer en la lista de buffers.
+- =C-x s= guarda los cambios en todos los buffers abiertos, emacs te consulta en cada buffer si queres guardar los cambios.
+- =M-x= ejecutar comando por nombre.
+- =C-g= cancela el comando actual, permite descartar una combinacion de teclas que todavia no se ha resuelto en un comando.
+- =C-l= mueve el texto alrededor del cursor.
+- =C-s=, =C-r= realiza una busqueda incremental hacia adelante/atras en el buffer actual, se ingresa la palabra a buscar en el minibufer, consecutivos =C-s=, =C-r= mueven el cursor a la siguiente/anterior coincidencia la busqueda se termina con =Enter=.
+- =C-v= realiza un salto a la siguiente pagina del buffer (como =AvPag=).
+- =M-v= realiza un salto a la pagina anterior del buffer (como =RePag=).
+- =C-p=, =C-n= mueve el cursor a la linea anterior/siguiente respectivamente.
+- =C-b=, =C-f= mueve el cursor un caracter hacia atras/adelante respectivamente.
+- =M-b=, =M-f= mueve el cursor una palabra hacia atras/adelante respectivamente.
+- =C-a=, =C-e= mueve el cursor al principio/final de la linea.
+- =M-a=, =M-e= mueve el cursor al principio/final de la sentencia.
+- =C-w= cortar texto seleccionado.
+- =M-w= copiar texto seleccionado.
+- =C-y= pegar el ultimo elemento que fue copiado/cortado en el *kill ring*.
+- =M-y= pega el elemento seleccionado del *kill ring*, usos sucesivos del comando inmediatamente despues de haber usado =C-y= permite cambiar el texto pegado iterando en los elementos del *kill ring*.
+- =C-k= corta desde la posicion del cursor hasta el final de la linea.
+- =M-k= corta desde la posicion del cursor hasta el final de la sentencia.
+- =C-d= elimina el siguiente carater desde la posicion del cursor.
+- =M-d= elimina la siguiente palabra desde la posicion del cursor.
+- =M-<DEL>= elimina la anterior palabra desde la posicion del cursor.
+- =C-<SPC>= permite seleccionar un area con el cursor.
+- =C-/=, =C-_=, =C-x y= restaura el ultimo cambio.
+- =C-x 0= cierra la ventana enfocada.
+- =C-x 1= cierra todas las ventanas menos la ventana enfocada.
+- =C-x 2= divide la ventana actual de forma vertical.
+- =C-x 3= divide la ventana actual de forma horizontal.
+- =C-x 4 f= abre el archivo seleccionado en otra ventana.
+- =C-x o= mueve el cursor a la siguiente ventana de manera circular
+- =C-M-v=, =C-M-<SHIFT>-v= hace un salto de pagina hacia adelante/atras en la ventana no enfocada
 
 ** Autoguardado
-Emacs genera automaticamente un archivo #nombrearchiv.extencion# de autoguardado, si por algun motivo se cierra la sesion sin guardar el buffer. La proxima vez que abramos el mismo archivo que se nos cerro de forma inesperada podemos recuperar el trabajo con =M-x recover-this-file=, luego emacs nos preguntara una confirmacion. Una vez guardemos el buffer en un archivo el archivo de autoguardado automaticamente se borrara.
+Emacs genera automaticamente un archivo #nombrearchivo.extencion# de autoguardado, si por algun motivo se cierra la sesion sin guardar el buffer. La proxima vez que abramos el mismo archivo que se nos cerro de forma inesperada podemos recuperar el trabajo con =M-x recover-this-file=, luego emacs nos preguntara una confirmacion. Una vez guardemos el buffer en un archivo el archivo de autoguardado automaticamente se borrara.
 
 * Configuracion Basica
 ** Config Basica
 Abrir Config.org =C-c c=
-Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), mostrar numero de lineas, mostrar lineas largas como varias, borrar seleccion al tipear
+Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero de linea y columna, mostrar numero de lineas, mostrar lineas largas como varias, borrar seleccion al tipear, etc.
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-c c") (lambda () (interactive) (find-file "~/.emacs.d/config.org"))) ; bindeo para abrir config
                                           ;(electric-pair-mode 1)
@@ -127,33 +93,108 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), mostrar
 
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
-  (setq-default standard-indent 4) 
+  (setq-default standard-indent 4)
 
+  (setq column-number-mode t)
   (global-display-line-numbers-mode 1)
   (global-visual-line-mode t)
   (electric-indent-mode 1)
   (setq whitespace-line-column 1000)
   (delete-selection-mode 1)
-  (auto-image-file-mode t);; para mostrar imágenes
-  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)  
-#+end_src
+  (auto-image-file-mode t)
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
+  (winner-mode 1)
 
-** Desactivar barra de menu, scroll, pagina inicio
-#+begin_src emacs-lisp
+  ;;Apariencia matcheo de parentesis 
+  (set-face-background 'show-paren-match "wheat")
+  (set-face-attribute 'show-paren-match nil :weight 'extra-bold)
+  (show-paren-mode)
+
+  ;;Desactivar barra de menu, scroll, pagina inicio, cursor parpadeante
   (setq inhibit-startup-message t visible-bell t)
   (menu-bar-mode -1)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
+  (blink-cursor-mode 0)
+
+  ;;Espacios en vez de tabs, dos espacios
+  (setq-default indent-tabs-mode nil)
+  (setq-default c-basic-indent 2)
+  (setq-default c-basic-offset 2)
+  (setq-default tab-width 2)
+  (setq tab-width 2)
+  (setq js-indent-level 2)
+  (setq css-indent-offset 2)
+  (setq c-basic-offset 2)
 #+end_src
 
 ** Cambiar directorio de backups.
 Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del archivo por defecto, aca muevo todos los backups a una carpeta especifica
 #+begin_src emacs-lisp
-  (recentf-mode 1)            
+  (recentf-mode 1)
   (setq recentf-max-saved-items 50)
   (setq backup-directory-alist `(("." . "~/.emacs.d/autoguardado/")))
 #+end_src
-** Acciones al guardar este archivo 
+
+* ORG Mode :org:
+** Config basica
+#+begin_src emacs-lisp
+  (require 'org)
+  (setq-default org-enforce-todo-dependencies t) ; fuerza TODO al padre de un item
+  (setq org-startup-with-inline-images t) ; Muestra las imagenes por defecto, en vez de mostrar links
+  (add-hook 'org-mode-hook 'org-display-inline-images) ; cuando creo un archivo desde el org mode (por ejemplo una img como resultado de plant uml) actualiza todas las imagenes
+  (setq org-M-RET-may-split-line '((default . nil))) ; M-RET es para crear nuevo headline, item lista, subnivel, etc del nivel actual
+  (setq org-insert-heading-respect-content t)
+  (setq org-log-done 'time)
+
+  (setq org-treat-insert-todo-heading-as-state-change t)
+  (setq org-log-into-drawer t)
+  (add-to-list 'org-modules 'org-habit t)
+
+  (setq tareas-dir "~/Organizacion/")
+  (setq org-agenda-files (list tareas-dir))
+#+end_src
+** Bloques Org agenda
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c a") 'org-agenda)
+  (setq org-agenda-current-time-string "← Ahora")
+  (setq org-agenda-format-date "%d/%m/%Y")
+  (setq org-agenda-time-grid '((daily today) () "" ""))
+
+  (setq org-agenda-custom-commands
+        '(
+          ("n" "TAREAS"
+           (
+            (tags-todo "+DEADLINE<\"<today>\"|+SCHEDULED<\"<today>\""
+                       ((org-agenda-overriding-header "\nATRASADO\n")
+                        (org-agenda-block-separator ?─)
+                        (org-agenda-skip-function '(org-agenda-skip-entry-if 'done))))
+            
+            (agenda ""
+                    ((org-agenda-overriding-header "\nDIA\n")
+                     (org-agenda-block-separator ?─)
+                     (org-agenda-span 1)))
+            
+            (agenda ""
+                    ((org-agenda-overriding-header "\nSEMANA\n")
+                     (org-agenda-block-separator ?─)
+                     (org-agenda-span 7)))
+            (agenda ""
+                    ((org-agenda-overriding-header "\nMES\n")
+                     (org-agenda-block-separator ?─)
+                     (org-agenda-span 30)))
+
+            (tags-todo "*"
+                       ((org-agenda-overriding-header "\nTAREAS A FUTURO\n")
+                        (org-agenda-block-separator ?─)
+                        (org-agenda-skip-function '(org-agenda-skip-entry-if 
+                                                    'done 'scheduled 'deadline))))
+            ))))
+
+#+end_src
+
+** Acciones al guardar archivos org 
 Autotanglear archivos .el al guardar archivos.org.
 Lo mismo que hacer =C-c C-v t=.
 #+begin_src emacs-lisp
@@ -163,78 +204,80 @@ Lo mismo que hacer =C-c C-v t=.
   (add-hook 'after-save-hook 'fran/auto-tangle)
 #+end_src
 
-* ORG Mode
-** Config basica
-#+begin_src emacs-lisp
-  (setq-default org-enforce-todo-dependencies t) ; fuerza TODO al padre de un item
-  (setq org-startup-with-inline-images t) ; Muestra las imagenes por defecto, en vez de mostrar links
-  (add-hook 'org-mode-hook 'org-display-inline-images) ; cuando creo un archivo desde el org mode (por ejemplo una img como resultado de plant uml) actualiza todas las imagenes
-  (setq org-M-RET-may-split-line '((default . nil))) ; M-RET es para crear nuevo headline, item lista, subnivel, etc del nivel actual
-  (setq org-insert-heading-respect-content t)
-  (setq org-log-done 'time)
-  (setq org-log-into-drawer t)
-  
-  (setq tareas-dir "~/Organizacion/")
-  (setq org-agenda-files (list tareas-dir))
-#+end_src
-
-
-Para que tire facha el org. Bullets cambia los marcadores de niveles * ** .. etc.
-add-hook
-
-+begin_src emacs-lisp
-(add-hook 'org-mode-hook 'org-indent-mode)
-(use-package org-bullets :ensure t)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-(setq org-hide-emphasis-markers t)
-+end_src
-
 * GUI
 ** Fuentes
 #+begin_src emacs-lisp
   (set-language-environment "UTF-8")
   (set-default-coding-systems 'utf-8)
   (setq-default line-spacing 0.12)
-  (set-face-attribute 'default nil :family "Mononoki Nerd Font" :height 150)
-                                          ; (set-face-attribute 'org-block nil :family "Iosevka Nerd Font")
+
+  (setq fran/fuente-codigo "Inconsolata Nerd Font")
+  (setq fran/fuente-texto "Iosevka Nerd Font")
+
+  (set-face-attribute 'org-block nil :family fran/fuente-codigo)
+  (set-face-attribute 'default nil :family fran/fuente-texto :height 150)
+
+  (add-hook 'prog-mode-hook
+            (lambda ()
+              (setq buffer-face-mode-face `(:family ,fran/fuente-codigo))
+              (buffer-face-mode t)))
 #+end_src
 
-** Temas y colorcitos
+
+* Propio
+Funciones definidas por mi y demas
+
 #+begin_src emacs-lisp
-  (defvar lista-temas '(doom-tomorrow-day doom-dracula doom-fairy-floss doom-gruvbox doom-solarized-light doom-laserwave))
-  (defvar aux-temas 0)
   
-  (setq tema-aux (nth  aux-temas lista-temas))
-  (setq tema-actual (nth aux-temas lista-temas))
-    (defun cambiar-tema ()
+  (setq fran/lista-temas '(doom-tomorrow-day doom-tomorrow-night))
+  (setq aux-temas 0)
+
+  (setq fran/tema-actual (nth aux-temas fran/lista-temas))
+  (defun fran/cambiar-tema ()
     (interactive)
     (progn
-      (setq tema-aux tema-actual)
-      (setq aux-temas (mod (1+ aux-temas) (length lista-temas)))
-      (setq tema-actual (nth aux-temas lista-temas))
-      (disable-theme tema-aux)
-      (load-theme tema-actual t)))
+      (when fran/tema-actual (disable-theme fran/tema-actual))
+      (setq aux-temas (mod (1+ aux-temas) (length fran/lista-temas)))
+      (setq fran/tema-actual (nth aux-temas fran/lista-temas))
+      (load-theme fran/tema-actual t)))
 
-  (global-set-key (kbd "C-c t") 'cambiar-tema)
+  (global-set-key (kbd "C-c t") 'fran/cambiar-tema)
 
-  (use-package doom-themes
-    :ensure t
-    :config
-    (setq doom-themes-enable-bold t
-          doom-themes-enable-italic t)
-    (load-theme tema-actual t)
-    (doom-themes-visual-bell-config)
-    (doom-themes-org-config))
+  (defun fran/nueva-linea-abajo () 
+    (interactive) 
+    (end-of-line) 
+    (newline-and-indent))
 
-  (use-package rainbow-mode :ensure t :hook (emacs-lisp-mode text-mode lisp-mode org-mode css-mode conf-mode))
+  (defun fran/nueva-linea-arriba () 
+    (interactive) 
+    (beginning-of-line) 
+    (newline) 
+    (forward-line -1) 
+    (indent-according-to-mode))
 
 
-  (use-package rainbow-identifiers :ensure t)
-  (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+  (global-set-key (kbd "C-c t") 'fran/cambiar-tema)
+  (global-set-key (kbd "M-RET") 'fran/nueva-linea-abajo)
+  (global-set-key (kbd "M-S-RET") 'fran/nueva-linea-arriba)
+
+  (global-set-key (kbd "C-S-z") 'undo-redo)
+  (global-set-key (kbd "C-z") 'undo)
 
 #+end_src
 
-* Paquetes
+
+(defun layout-java ()
+(interactive)
+(delete-other-windows)
+(split-window-horizontally)
+(windmove-right)
+(split-window-vertically)
+(magit-status)
+(windmove-left)
+(devdocs-peruse))
+
+
+* Paquetes :paquetes:
 ** Paquetes esenciales
 *** Gestor de paquetes
 Inicializo el gestor de paquetes por defecto de emacs, agrego repos melpa y gnu, inicializo use-package.
@@ -243,6 +286,9 @@ Inicializo el gestor de paquetes por defecto de emacs, agrego repos melpa y gnu,
   (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                            ("gnu" . "https://elpa.gnu.org/packages/")))
   (package-initialize)
+
+  (unless package-archive-contents
+    (package-refresh-contents))
 
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
@@ -256,11 +302,13 @@ Vertico es una UI para el autocompletado del minibuffer.
   (use-package vertico :ensure t
     :custom
     (vertico-scroll-margin 0)
-    (vertico-count 20)
+    (vertico-count 10)
     (vertico-resize t)
     (vertico-cycle t)
     :init
     (vertico-mode))
+  (setq completion-ignore-case t)
+  (setq read-file-name-completion-ignore-case t)
   (keymap-set vertico-map "<left>" #'vertico-directory-up)
   (keymap-set vertico-map "<right>" #'vertico-insert)
 #+end_src
@@ -292,16 +340,10 @@ Corfu, UI autocompletado de buffer (codigo).
 
 #+end_src
 
-Which-key, muestra opciones de autocompletado para comandos.
+Which-key, muestra opciones de autocompletado para comandos. Marginalia, muestra metadatos en el minibuffer (info de comandos, permisos de archivos, etc).
 #+begin_src emacs-lisp
   (use-package which-key :ensure t :config (which-key-mode))
-#+end_src
-
-Marginalia, muestra metadatos en el minibuffer (info de comandos, permisos de archivos, etc).
-#+begin_src emacs-lisp
-  (use-package marginalia :ensure t
-    :init
-    (marginalia-mode))
+  (use-package marginalia :ensure t :init (marginalia-mode))
 #+end_src
 
 Orderless, agrega busqueda sin orden en los autocompletados.
@@ -311,6 +353,10 @@ Orderless, agrega busqueda sin orden en los autocompletados.
     :custom
     (completion-styles '(orderless basic))
     (completion-category-overrides '((file (styles basic partial-completion)))))
+
+  (setq orderless-skip-highlighting nil
+        orderless-component-separator #'orderless-escapable-split-on-space)
+
 #+end_src
 
 ** Paquetes desarrollo
@@ -332,6 +378,15 @@ Quickrun es para hacer ejecucciones de codigo en el buffer.
   (use-package yasnippet-snippets :ensure t)
   (use-package flycheck :ensure t :init (global-flycheck-mode))
   (use-package quickrun  :ensure t :bind ("C-c r" . quickrun))
+#+end_src
+
+
+Sly, REPL common lisp para emacs.
+
+#+begin_src emacs-lisp
+
+  (use-package sly :ensure t)
+  (setq inferior-lisp-program "/usr/bin/sbcl")
 #+end_src
 
 Eglot, LSP de emacs, configurado con algunos lenguajes.
@@ -409,3 +464,28 @@ Plantum, genera diagramas UML desde codigo plant uml ejecutado con org-babel
    '((scheme . t)
      (plantuml . t)))
 #+end_src
+
+** GUI
+#+begin_src emacs-lisp
+  (use-package doom-themes
+    :ensure t
+    :config
+    (setq doom-themes-enable-bold t
+          doom-themes-enable-italic t)
+    (load-theme fran/tema-actual t)
+    (doom-themes-visual-bell-config)
+    (doom-themes-org-config))
+  
+  (use-package solaire-mode
+    :ensure t
+    :config
+    (solaire-global-mode +1))
+
+  (use-package rainbow-mode :ensure t :hook org-mode prog-mode) ;;Muestra los codigos rgb con color
+
+  (use-package rainbow-identifiers :ensure t)
+  (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+
+  (use-package rainbow-delimiters :ensure t :hook ((org-mode . rainbow-delimiters-mode) (prog-mode . rainbow-delimiters-mode)))
+#+end_src
+
