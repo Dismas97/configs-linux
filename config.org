@@ -13,17 +13,12 @@ Deberia proporcionar las herramientas basicas de una IDE al desarrollar en un le
 Dado que Emacs es facilmente extensible y cuenta con innumerables paquetes considero que es una eleccion apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP(Lenguaje server protocol) y nos da la mayoria de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
 
 Se busca que el resultado final sea consistente y accesible. Configuraciones respecto a combinaciones de teclas, navegacion entre buffers, etc. deberian respetar un formato estandarizado.
+
 * TODO Pendiente
-** TODO Agregar intro a esta config
-A que aspiro con esta config, uso basico, etc.
 ** TODO Separar bindeos
 En una seccion aparte de este mismo org o en un archivo aparte.
 *** TODO Definir formato propio de bindeos
 Fijarse que onda los paquetes como hydra
-** TODO Edicion colaborativa
-Como hago edicion colaborativa en emacs? A lo google docs, averiguar paquetes: *crdt*
-** TODO Configurar Org Agenda
-Como se usa? Como agrego TODOS a una lista global? como veo dicha lista? como les pongo fecha limite? puedo compartir esa lista? etc.
 ** TODO Ampliar explicaciones config
 Esto, explayarme mas con lo que hago en cada segmento de codigo
 
@@ -150,22 +145,19 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
   (setq org-treat-insert-todo-heading-as-state-change t)
   (setq org-log-into-drawer t)
   (add-to-list 'org-modules 'org-habit t)
+#+end_src
+** Org agenda
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-c a") 'org-agenda)
 
   (setq tareas-dir "~/Organizacion/")
   (setq org-agenda-files (list tareas-dir))
-#+end_src
-** Bloques Org agenda
-
-#+begin_src emacs-lisp
-  (global-set-key (kbd "C-c a") 'org-agenda)
   (setq org-agenda-current-time-string "← Ahora")
   (setq org-agenda-format-date "%d/%m/%Y")
   (setq org-agenda-time-grid '((daily today) () "" ""))
 
   (setq org-agenda-custom-commands
-        '(
-          ("n" "TAREAS"
-           (
+        '(("n" "TAREAS" (
             (tags-todo "+DEADLINE<\"<today>\"|+SCHEDULED<\"<today>\""
                        ((org-agenda-overriding-header "\nATRASADO\n")
                         (org-agenda-block-separator ?─)
@@ -188,20 +180,8 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
             (tags-todo "*"
                        ((org-agenda-overriding-header "\nTAREAS A FUTURO\n")
                         (org-agenda-block-separator ?─)
-                        (org-agenda-skip-function '(org-agenda-skip-entry-if 
-                                                    'done 'scheduled 'deadline))))
-            ))))
+                        (org-agenda-skip-function '(org-agenda-skip-entry-if 'done 'scheduled 'deadline))))))))
 
-#+end_src
-
-** Acciones al guardar archivos org 
-Autotanglear archivos .el al guardar archivos.org.
-Lo mismo que hacer =C-c C-v t=.
-#+begin_src emacs-lisp
-  (defun fran/auto-tangle ()
-    (when (string-equal (file-name-extension buffer-file-name) "org")
-      (org-babel-tangle)))
-  (add-hook 'after-save-hook 'fran/auto-tangle)
 #+end_src
 
 * GUI
@@ -225,10 +205,9 @@ Lo mismo que hacer =C-c C-v t=.
 
 
 * Propio
-Funciones definidas por mi y demas
+Funciones definidas por mi, algunos cambios de bindeos, etc.
 
 #+begin_src emacs-lisp
-  
   (setq fran/lista-temas '(doom-tomorrow-day doom-tomorrow-night))
   (setq aux-temas 0)
 
@@ -240,8 +219,6 @@ Funciones definidas por mi y demas
       (setq aux-temas (mod (1+ aux-temas) (length fran/lista-temas)))
       (setq fran/tema-actual (nth aux-temas fran/lista-temas))
       (load-theme fran/tema-actual t)))
-
-  (global-set-key (kbd "C-c t") 'fran/cambiar-tema)
 
   (defun fran/nueva-linea-abajo () 
     (interactive) 
@@ -259,23 +236,19 @@ Funciones definidas por mi y demas
   (global-set-key (kbd "C-c t") 'fran/cambiar-tema)
   (global-set-key (kbd "M-RET") 'fran/nueva-linea-abajo)
   (global-set-key (kbd "M-S-RET") 'fran/nueva-linea-arriba)
-
   (global-set-key (kbd "C-S-z") 'undo-redo)
   (global-set-key (kbd "C-z") 'undo)
-
 #+end_src
 
-
-(defun layout-java ()
-(interactive)
-(delete-other-windows)
-(split-window-horizontally)
-(windmove-right)
-(split-window-vertically)
-(magit-status)
-(windmove-left)
-(devdocs-peruse))
-
+** Acciones al guardar archivos org 
+Autotanglear archivos .el al guardar archivos.org.
+Lo mismo que hacer =C-c C-v t=.
+#+begin_src emacs-lisp
+  (defun fran/auto-tangle ()
+    (when (string-equal (file-name-extension buffer-file-name) "org")
+      (org-babel-tangle)))
+  (add-hook 'after-save-hook 'fran/auto-tangle)
+#+end_src
 
 * Paquetes :paquetes:
 ** Paquetes esenciales
@@ -360,19 +333,16 @@ Orderless, agrega busqueda sin orden en los autocompletados.
 #+end_src
 
 ** Paquetes desarrollo
-Paquetes que proveen funcionalidades de IDE.
-
+*** Paquetes que proveen funcionalidades de IDE.
+Magit, GUI de git en emacs
+Projectile, mejora la gestion de proyectos, busqueda de archivo en el proyecto, compilacion, etc.
 #+begin_src emacs-lisp 
   (use-package magit :ensure t)
-#+end_src
-
-Projectile, mejora la gestion de proyectos, busqueda de archivo en el proyecto, compilacion, etc.
-#+begin_src emacs-lisp
   (use-package projectile :ensure t :init (projectile-mode +1)
     :config (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 #+end_src
 
-Flycheck le da una UI al debuguer/errores de sintaxys/etc numero linea con error, subrayar variable con error,etc.
+Flycheck le da una UI al debuguer, errores de sintaxix, numero linea con error, subrayar variable con error,etc.
 Quickrun es para hacer ejecucciones de codigo en el buffer.
 #+begin_src emacs-lisp
   (use-package yasnippet-snippets :ensure t)
@@ -380,25 +350,9 @@ Quickrun es para hacer ejecucciones de codigo en el buffer.
   (use-package quickrun  :ensure t :bind ("C-c r" . quickrun))
 #+end_src
 
-
-Sly, REPL common lisp para emacs.
-
-#+begin_src emacs-lisp
-
-  (use-package sly :ensure t)
-  (setq inferior-lisp-program "/usr/bin/sbcl")
-#+end_src
-
 Eglot, LSP de emacs, configurado con algunos lenguajes.
 #+begin_src emacs-lisp
   (use-package eglot
-    ;; :bind (:map eglot-mode-map
-    ;;             ("C-c e f n" . flymake-goto-next-error)
-    ;;             ("C-c e f p" . flymake-goto-prev-error)
-    ;;             ("C-c e r" . eglot-rename)
-    ;;             ("C-c e f r" . eglot-format)
-    ;;             ("C-c e f b" . eglot-format-buffer)
-    ;;             ("C-c e a" . eglot-code-actions))
     :hook
     ((c-mode . eglot-ensure)
      (c++-mode . eglot-ensure))
@@ -406,15 +360,8 @@ Eglot, LSP de emacs, configurado con algunos lenguajes.
     (fset #'jsonrpc--log-event #'ignore)
     (eglot-events-buffer-size 0))
   (setq eglot-autoshutdown t)
-
+  
   (add-hook 'java-mode-hook 'eglot-java-mode)
-  ;;(with-eval-after-load 'eglot-java
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l n") #'eglot-java-file-new)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l x") #'eglot-java-run-main)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l t") #'eglot-java-run-test)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l N") #'eglot-java-project-new)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l T") #'eglot-java-project-build-task)
-  ;;  (define-key eglot-java-mode-map (kbd "C-c l R") ;;#'eglot-java-project-build-refresh))
 #+end_src
 
 Yasnippet, permite definir snippets en emacs, viene con varios por defecto.
@@ -432,18 +379,24 @@ Algunas definiciones de snippets para org-mode, tangle archivo, a directorio, et
                          ("suml" "#+begin_src plantuml :file \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
                           "Bloque de codigo plantuml, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/suml" nil nil)
 
-                         ("sjav" "#+begin_src java :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
-                          "Bloque de codigo java, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/java" nil nil)
-
                          ("sscm" "#+begin_src scheme \n${1:}\n#+end_src"
                           "Bloque de codigo scheme" nil nil nil "~/.emacs.d/snippets/scheme" nil nil)))
 
 #+end_src
 
-Le pega a la api de devdocs, documentacion de muchisimos lenguajes.
+Api de devdocs, documentacion de muchisimos lenguajes.
 #+begin_src emacs-lisp
   (use-package devdocs :ensure t)
   (global-set-key (kbd "C-h D") 'devdocs-lookup)
+#+end_src
+
+*** Lenguajes
+Paquetes de lenguajes especificos
+
+Sly, REPL common lisp para emacs.
+#+begin_src emacs-lisp
+  (use-package sly :ensure t)
+  (setq inferior-lisp-program "/usr/bin/sbcl")
 #+end_src
 
 ** Paquetes ORG
@@ -475,8 +428,8 @@ Plantum, genera diagramas UML desde codigo plant uml ejecutado con org-babel
     (load-theme fran/tema-actual t)
     (doom-themes-visual-bell-config)
     (doom-themes-org-config))
-  
-  (use-package solaire-mode
+
+  (use-package solaire-mode  ;; Cambia de color los buffers "secundarios" como pop ups, terminal, etc. para que sea mas facil distinguir de los "primarios"
     :ensure t
     :config
     (solaire-global-mode +1))
@@ -487,5 +440,12 @@ Plantum, genera diagramas UML desde codigo plant uml ejecutado con org-babel
   (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
 
   (use-package rainbow-delimiters :ensure t :hook ((org-mode . rainbow-delimiters-mode) (prog-mode . rainbow-delimiters-mode)))
+
+  ;;Para leer pdfs
+  (use-package pdf-tools :ensure t :config
+    (pdf-loader-install)
+    (setq pdf-loader-install-commands 'install))
+  (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
+  (setq pdf-view-disable-text-extraction nil)
 #+end_src
 
