@@ -89,6 +89,11 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
   (setq-default standard-indent 4)
+;;  (setq-default c-basic-indent 2)
+;;  (setq-default c-basic-offset 2)
+;;  (setq js-indent-level 2)
+;;  (setq css-indent-offset 2)
+;;  (setq c-basic-offset 2)
 
   (setq column-number-mode t)
   (global-display-line-numbers-mode 1)
@@ -112,15 +117,6 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
   (scroll-bar-mode -1)
   (blink-cursor-mode 0)
 
-  ;;Espacios en vez de tabs, dos espacios
-  (setq-default indent-tabs-mode nil)
-  (setq-default c-basic-indent 2)
-  (setq-default c-basic-offset 2)
-  (setq-default tab-width 2)
-  (setq tab-width 2)
-  (setq js-indent-level 2)
-  (setq css-indent-offset 2)
-  (setq c-basic-offset 2)
 #+end_src
 
 ** Cambiar directorio de backups.
@@ -202,13 +198,14 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
               (setq buffer-face-mode-face `(:family ,fran/fuente-codigo))
               (buffer-face-mode t)))
 #+end_src
-
-
+** Mode-line
+#+begin_src emacs-lisp
+#+end_src
 * Propio
 Funciones definidas por mi, algunos cambios de bindeos, etc.
 
 #+begin_src emacs-lisp
-  (setq fran/lista-temas '(doom-tomorrow-day doom-tomorrow-night))
+  (setq fran/lista-temas '(doom-feather-light doom-dracula))
   (setq aux-temas 0)
 
   (setq fran/tema-actual (nth aux-temas fran/lista-temas))
@@ -334,6 +331,17 @@ Orderless, agrega busqueda sin orden en los autocompletados.
 
 ** Paquetes desarrollo
 *** Paquetes que proveen funcionalidades de IDE.
+Config automatica de treesit
+#+begin_src emacs-lisp 
+  (use-package treesit-auto
+    :ensure t
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (setq treesit-auto-langs '(c java javascript html css))
+    (global-treesit-auto-mode))
+#+end_src
+
 Magit, GUI de git en emacs
 Projectile, mejora la gestion de proyectos, busqueda de archivo en el proyecto, compilacion, etc.
 #+begin_src emacs-lisp 
@@ -355,13 +363,20 @@ Eglot, LSP de emacs, configurado con algunos lenguajes.
   (use-package eglot
     :hook
     ((c-mode . eglot-ensure)
-     (c++-mode . eglot-ensure))
+     (c++-mode . eglot-ensure)
+     (js-mode . eglot-ensure)
+     (java-mode . eglot-ensure))
     :custom
     (fset #'jsonrpc--log-event #'ignore)
     (eglot-events-buffer-size 0))
+
   (setq eglot-autoshutdown t)
-  
+  (add-hook 'eglot-managed-mode-hook 
+            (lambda () (setq xref-backend-functions #'eglot-xref-backend)))
   (add-hook 'java-mode-hook 'eglot-java-mode)
+
+  (setq read-process-output-max (* 1024 1024))  ; Aumentar buffer a 1MB
+  (setq eglot-sync-connect 1)
 #+end_src
 
 Yasnippet, permite definir snippets en emacs, viene con varios por defecto.
@@ -378,6 +393,9 @@ Algunas definiciones de snippets para org-mode, tangle archivo, a directorio, et
 
                          ("suml" "#+begin_src plantuml :file \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
                           "Bloque de codigo plantuml, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/suml" nil nil)
+                         
+                         ("verb" "#+begin_src verb \n${1:}\n#+end_src"
+                          "Bloque de codigo verb" nil nil nil "~/.emacs.d/snippets/verb" nil nil)
 
                          ("sscm" "#+begin_src scheme \n${1:}\n#+end_src"
                           "Bloque de codigo scheme" nil nil nil "~/.emacs.d/snippets/scheme" nil nil)))
@@ -390,6 +408,15 @@ Api de devdocs, documentacion de muchisimos lenguajes.
   (global-set-key (kbd "C-h D") 'devdocs-lookup)
 #+end_src
 
+Cliente http emacs con org mode
+#+begin_src emacs-lisp 
+  (use-package verb :ensure t)
+  (with-eval-after-load 'org
+    (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((verb . t)))
+#+end_src
 *** Lenguajes
 Paquetes de lenguajes especificos
 
@@ -422,9 +449,10 @@ Plantum, genera diagramas UML desde codigo plant uml ejecutado con org-babel
 #+begin_src emacs-lisp
   (use-package doom-themes
     :ensure t
+    :custom
+    (doom-themes-enable-bold t) 
+    (doom-themes-enable-italic t)
     :config
-    (setq doom-themes-enable-bold t
-          doom-themes-enable-italic t)
     (load-theme fran/tema-actual t)
     (doom-themes-visual-bell-config)
     (doom-themes-org-config))
