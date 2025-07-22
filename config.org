@@ -2,69 +2,69 @@
 #+AUTHOR: fran
 #+LANGUAGE: es
 #+STARTUP: content indent showeverything
-#+DESCRIPTION: Configuracion personal de emacs para centralizar lo que es documentacion, desarrollo y edicion de texto en general.
+#+DESCRIPTION: Configuración personal de emacs para centralizar lo que es documentacion, desarrollo y edicion de texto en general.
 #+PROPERTY: header-args:emacs-lisp :tangle "init.el"
 
-* Introduccion
-Este archivo  documenta mi config personal de emacs. Esta config apunta a moldear Emacs para convertirlo en una plataforma unificada de desarrollo y documentacion.
+* Introducción
+Este archivo  documenta mi config personal de emacs. Esta config apunta a moldear Emacs para convertirlo en una plataforma unificada de desarrollo y documentación.
 
-Deberia proporcionar las herramientas basicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas basicas para la documentacion de software (generar diagramas uml, bpmn, etc) y herramientas para la gestion organizacional y personal (agenda, todo).
+Debería proporcionar las herramientas básicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas básicas para la documentación de software (generar diagramas uml, bpmn, etc) y herramientas para la gestión organizacional y personal (agenda, todo).
 
-Dado que Emacs es facilmente extensible y cuenta con innumerables paquetes considero que es una eleccion apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP(Lenguaje server protocol) y nos da la mayoria de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
+Dado que Emacs es fácilmente extensible y cuenta con innumerables paquetes considero que es una elección apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP(Lenguaje server protocol) y nos da la mayoría de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
 
-Se busca que el resultado final sea consistente y accesible. Configuraciones respecto a combinaciones de teclas, navegacion entre buffers, etc. deberian respetar un formato estandarizado.
+Se busca que el resultado final sea consistente y accesible. Configuraciones respecto a combinaciones de teclas, navegación entre buffers, etc. deberían respetar un formato estandarizado.
 
 * TODO Pendiente
 ** TODO Separar bindeos
-En una seccion aparte de este mismo org o en un archivo aparte.
+En una sección aparte de este mismo org o en un archivo aparte.
 *** TODO Definir formato propio de bindeos
 Fijarse que onda los paquetes como hydra
 ** TODO Ampliar explicaciones config
-Esto, explayarme mas con lo que hago en cada segmento de codigo
+Esto, explayarme mas con lo que hago en cada segmento de código
 
-* Guia Rapida :guia:keys:
-Al abrir o crear un archivo en emacs realmente estamos trabajando con un *Buffer*, cualquier modificacion que hagamos seran aplicadas al buffer y no al archivo, solo cuando realizamos un guardado es que emacs escribe el buffer a disco. Emacs utiliza un *mini buffer* para notificar informacion importante al usuario y para leer inputs para comandos (por ejemplo palabras a buscar en un buffer).
+* Guía Rápida :guia:keys:
+Al abrir o crear un archivo en emacs realmente estamos trabajando con un *Buffer*, cualquier modificación que hagamos serán aplicadas al buffer y no al archivo, solo cuando realizamos un guardado es que emacs escribe el buffer a disco. Emacs utiliza un *mini buffer* para notificar información importante al usuario y para leer inputs para comandos (por ejemplo palabras a buscar en un buffer).
 
-Los comandos en emacs involucran la tecla =CONTROL= y la tecla =ALT= o =META=. La combinacion de dichas teclas con otras nos permite ejecutar comandos y prefijos en emacs. El comando mas importante y util es =M-x= el cual nos permite ejecutar comandos por nombre, cuando no recordemos la combinacion de un comando en particular. Emacs utiliza =C-x= como *comando extendido* el cual sirve como prefijo de muchos comandos importantes como =C-x C-f= el cual nos permite buscar y crear archivos, =C-x C-s= el cual guarda los cambios del buffer actual, =C-x C-c= cierra la sesion actual de emacs.
+Los comandos en emacs involucran la tecla =CONTROL= y la tecla =ALT= o =META=. La combinación de dichas teclas con otras nos permite ejecutar comandos y prefijos en emacs. El comando mas importante y util es =M-x= el cual nos permite ejecutar comandos por nombre, cuando no recordemos la combinación de un comando en particular. Emacs utiliza =C-x= como *comando extendido* el cual sirve como prefijo de muchos comandos importantes como =C-x C-f= el cual nos permite buscar y crear archivos, =C-x C-s= el cual guarda los cambios del buffer actual, =C-x C-c= cierra la sesión actual de emacs.
 
 Emacs guarda en el *kill ring* los elementos que fue copiando/cortando, es una lista circular, funciona como un *porta papeles*.
 
-** Lista de comandos basicos
+** Lista de comandos básicos
 - =C-h t= abre el tutorial de emacs.
 - =C-h ?= abre guia interna de emacs.
-- =C-h c <comando>= muestra la funcion a la que llama el comando dado.
-- =C-h k <comando>= muestra documentacion de la funcion que llama el comando dado.
-- =C-h v= muestra documentacion de variables de emacs (como el kill ring por ej)
+- =C-h c <comando>= muestra la función a la que llama el comando dado.
+- =C-h k <comando>= muestra documentación de la función que llama el comando dado.
+- =C-h v= muestra documentación de variables de emacs (como el kill ring por ej)
 - =C-h i= abre los manuales incluidos en emacs.
 - =C-= y =M-= se refieren a la letra control/alt combinada con un caracter dado.
-- =C-x C-c= cierra la sesion actual de emacs.
+- =C-x C-c= cierra la sesión actual de emacs.
 - =C-x C-s= guarda los cambios del buffer actual al archivo.
 - =C-x C-b= lista todos los buffers abiertos.
 - =C-x b= cambia al buffer dado.
 - =C-x k= cierra el buffer dado.
 - =C-x ->=, =C-x <-= cambia al siguiente/anterior buffer en la lista de buffers.
-- =C-x s= guarda los cambios en todos los buffers abiertos, emacs te consulta en cada buffer si queres guardar los cambios.
+- =C-x s= guarda los cambios en todos los buffers abiertos, emacs te consulta en cada buffer si querés guardar los cambios.
 - =M-x= ejecutar comando por nombre.
-- =C-g= cancela el comando actual, permite descartar una combinacion de teclas que todavia no se ha resuelto en un comando.
+- =C-g= cancela el comando actual, permite descartar una combinación de teclas que todavía no se ha resuelto en un comando.
 - =C-l= mueve el texto alrededor del cursor.
-- =C-s=, =C-r= realiza una busqueda incremental hacia adelante/atras en el buffer actual, se ingresa la palabra a buscar en el minibufer, consecutivos =C-s=, =C-r= mueven el cursor a la siguiente/anterior coincidencia la busqueda se termina con =Enter=.
+- =C-s=, =C-r= realiza una búsqueda incremental hacia adelante/atrás en el buffer actual, se ingresa la palabra a buscar en el minibufer, consecutivos =C-s=, =C-r= mueven el cursor a la siguiente/anterior coincidencia la búsqueda se termina con =Enter=.
 - =C-v= realiza un salto a la siguiente pagina del buffer (como =AvPag=).
 - =M-v= realiza un salto a la pagina anterior del buffer (como =RePag=).
 - =C-p=, =C-n= mueve el cursor a la linea anterior/siguiente respectivamente.
-- =C-b=, =C-f= mueve el cursor un caracter hacia atras/adelante respectivamente.
-- =M-b=, =M-f= mueve el cursor una palabra hacia atras/adelante respectivamente.
+- =C-b=, =C-f= mueve el cursor un caracter hacia atrás/adelante respectivamente.
+- =M-b=, =M-f= mueve el cursor una palabra hacia atrás/adelante respectivamente.
 - =C-a=, =C-e= mueve el cursor al principio/final de la linea.
 - =M-a=, =M-e= mueve el cursor al principio/final de la sentencia.
 - =C-w= cortar texto seleccionado.
 - =M-w= copiar texto seleccionado.
 - =C-y= pegar el ultimo elemento que fue copiado/cortado en el *kill ring*.
-- =M-y= pega el elemento seleccionado del *kill ring*, usos sucesivos del comando inmediatamente despues de haber usado =C-y= permite cambiar el texto pegado iterando en los elementos del *kill ring*.
-- =C-k= corta desde la posicion del cursor hasta el final de la linea.
-- =M-k= corta desde la posicion del cursor hasta el final de la sentencia.
-- =C-d= elimina el siguiente carater desde la posicion del cursor.
-- =M-d= elimina la siguiente palabra desde la posicion del cursor.
-- =M-<DEL>= elimina la anterior palabra desde la posicion del cursor.
-- =C-<SPC>= permite seleccionar un area con el cursor.
+- =M-y= pega el elemento seleccionado del *kill ring*, usos sucesivos del comando inmediatamente después de haber usado =C-y= permite cambiar el texto pegado iterando en los elementos del *kill ring*.
+- =C-k= corta desde la posición del cursor hasta el final de la linea.
+- =M-k= corta desde la posición del cursor hasta el final de la sentencia.
+- =C-d= elimina el siguiente caracter desde la posición del cursor.
+- =M-d= elimina la siguiente palabra desde la posición del cursor.
+- =M-<DEL>= elimina la anterior palabra desde la posición del cursor.
+- =C-<SPC>= permite seleccionar un área con el cursor.
 - =C-/=, =C-_=, =C-x y= restaura el ultimo cambio.
 - =C-x 0= cierra la ventana enfocada.
 - =C-x 1= cierra todas las ventanas menos la ventana enfocada.
@@ -72,15 +72,15 @@ Emacs guarda en el *kill ring* los elementos que fue copiando/cortando, es una l
 - =C-x 3= divide la ventana actual de forma horizontal.
 - =C-x 4 f= abre el archivo seleccionado en otra ventana.
 - =C-x o= mueve el cursor a la siguiente ventana de manera circular
-- =C-M-v=, =C-M-<SHIFT>-v= hace un salto de pagina hacia adelante/atras en la ventana no enfocada
+- =C-M-v=, =C-M-<SHIFT>-v= hace un salto de pagina hacia adelante/atrás en la ventana no enfocada
 
-** Autoguardado
-Emacs genera automaticamente un archivo #nombrearchivo.extencion# de autoguardado, si por algun motivo se cierra la sesion sin guardar el buffer. La proxima vez que abramos el mismo archivo que se nos cerro de forma inesperada podemos recuperar el trabajo con =M-x recover-this-file=, luego emacs nos preguntara una confirmacion. Una vez guardemos el buffer en un archivo el archivo de autoguardado automaticamente se borrara.
+** Auto guardado
+Emacs genera automáticamente un archivo #nombrearchivo.extencion# de auto guardado, si por algún motivo se cierra la sesión sin guardar el buffer. La próxima vez que abramos el mismo archivo que se nos cerro de forma inesperada podemos recuperar el trabajo con =M-x recover-this-file=, luego emacs nos preguntara una confirmación. Una vez guardemos el buffer en un archivo el archivo de auto guardado automáticamente se borrara.
 
-* Configuracion Basica
-** Config Basica
+* Configuración Básica
+** Config Básica
 Abrir Config.org =C-c c=
-Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero de linea y columna, mostrar numero de lineas, mostrar lineas largas como varias, borrar seleccion al tipear, etc.
+Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero de linea y columna, mostrar numero de lineas, mostrar lineas largas como varias, borrar selección al tipear, etc.
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-c c") (lambda () (interactive) (find-file "~/.emacs.d/config.org"))) ; bindeo para abrir config
                                           ;(electric-pair-mode 1)
@@ -120,15 +120,34 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
 #+end_src
 
 ** Cambiar directorio de backups.
-Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del archivo por defecto, aca muevo todos los backups a una carpeta especifica
+Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del archivo por defecto, acá muevo todos los backups a una carpeta especifica
 #+begin_src emacs-lisp
   (recentf-mode 1)
   (setq recentf-max-saved-items 50)
   (setq backup-directory-alist `(("." . "~/.emacs.d/autoguardado/")))
 #+end_src
 
+** Idioma Diccionario
+
+#+begin_src emacs-lisp 
+(setq ispell-program-name "aspell")
+(setq ispell-local-dictionary "es_ES")
+(setq ispell-local-dictionary-alist
+      '(("es_ES"
+         "[A-Za-záéíóúüñÁÉÍÓÚÜÑ]"
+         "[^A-Za-záéíóúüñÁÉÍÓÚÜÑ]"
+         "[']"
+         nil
+         ("-d" "es_ES")
+         nil utf-8)))
+
+(add-hook 'org-mode-hook 'flyspell-mode)
+(add-hook 'markdown-mode-hook 'flyspell-mode)
+(add-hook 'text-mode-hook 'flyspell-mode)  
+#+end_src
+
 * ORG Mode :org:
-** Config basica
+** Config básica
 #+begin_src emacs-lisp
   (require 'org)
   (setq-default org-enforce-todo-dependencies t) ; fuerza TODO al padre de un item
@@ -267,7 +286,7 @@ Inicializo el gestor de paquetes por defecto de emacs, agrego repos melpa y gnu,
 #+end_src
 
 *** Paquetes que mejoran la experiencia en emacs
-Vertico es una UI para el autocompletado del minibuffer.
+Vertico es una UI para el auto completado del minibuffer.
 #+begin_src emacs-lisp
   (use-package vertico :ensure t
     :custom
@@ -283,7 +302,7 @@ Vertico es una UI para el autocompletado del minibuffer.
   (keymap-set vertico-map "<right>" #'vertico-insert)
 #+end_src
 
-Corfu, UI autocompletado de buffer (codigo).
+Corfu, UI auto completado de buffer (código).
 #+begin_src emacs-lisp
   (use-package corfu :ensure t
     :hook
@@ -310,13 +329,13 @@ Corfu, UI autocompletado de buffer (codigo).
 
 #+end_src
 
-Which-key, muestra opciones de autocompletado para comandos. Marginalia, muestra metadatos en el minibuffer (info de comandos, permisos de archivos, etc).
+Which-key, muestra opciones de auto completado para comandos. Marginalia, muestra meta datos en el minibuffer (info de comandos, permisos de archivos, etc).
 #+begin_src emacs-lisp
   (use-package which-key :ensure t :config (which-key-mode))
   (use-package marginalia :ensure t :init (marginalia-mode))
 #+end_src
 
-Orderless, agrega busqueda sin orden en los autocompletados.
+Orderless, agrega búsqueda sin orden en los auto completados.
 #+begin_src emacs-lisp
   (use-package orderless
     :ensure t
@@ -331,7 +350,7 @@ Orderless, agrega busqueda sin orden en los autocompletados.
 
 ** Paquetes desarrollo
 *** Paquetes que proveen funcionalidades de IDE.
-Config automatica de treesit
+Config automática de treesit
 #+begin_src emacs-lisp 
   (use-package treesit-auto
     :ensure t
@@ -343,15 +362,15 @@ Config automatica de treesit
 #+end_src
 
 Magit, GUI de git en emacs
-Projectile, mejora la gestion de proyectos, busqueda de archivo en el proyecto, compilacion, etc.
+Projectile, mejora la gestión de proyectos, búsqueda de archivo en el proyecto, compilación, etc.
 #+begin_src emacs-lisp 
   (use-package magit :ensure t)
   (use-package projectile :ensure t :init (projectile-mode +1)
     :config (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 #+end_src
 
-Flycheck le da una UI al debuguer, errores de sintaxix, numero linea con error, subrayar variable con error,etc.
-Quickrun es para hacer ejecucciones de codigo en el buffer.
+Flycheck le da una UI al debuguer, errores de sintaxis, numero linea con error, subrayar variable con error,etc.
+Quickrun es para hacer ejecuciones de código en el buffer.
 #+begin_src emacs-lisp
   (use-package yasnippet-snippets :ensure t)
   (use-package flycheck :ensure t :init (global-flycheck-mode))
@@ -402,7 +421,7 @@ Algunas definiciones de snippets para org-mode, tangle archivo, a directorio, et
 
 #+end_src
 
-Api de devdocs, documentacion de muchisimos lenguajes.
+Api de devdocs, documentación de muchísimos lenguajes.
 #+begin_src emacs-lisp
   (use-package devdocs :ensure t)
   (global-set-key (kbd "C-h D") 'devdocs-lookup)
@@ -418,7 +437,7 @@ Cliente http emacs con org mode
    '((verb . t)))
 #+end_src
 *** Lenguajes
-Paquetes de lenguajes especificos
+Paquetes de lenguajes específicos
 
 Sly, REPL common lisp para emacs.
 #+begin_src emacs-lisp
@@ -434,7 +453,7 @@ Tabla de contenidos org.
     :init (add-hook 'org-mode-hook 'toc-org-enable))
 #+end_src
 
-Plantum, genera diagramas UML desde codigo plant uml ejecutado con org-babel
+Plantum, genera diagramas UML desde código planta uml ejecutado con org-babel
 #+begin_src emacs-lisp
   (use-package plantuml-mode :ensure t)
   (setq org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml/plantuml.jar"))
