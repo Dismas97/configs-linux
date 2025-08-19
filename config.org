@@ -5,6 +5,32 @@
 #+DESCRIPTION: Configuración personal de emacs para centralizar lo que es documentacion, desarrollo y edicion de texto en general.
 #+PROPERTY: header-args:emacs-lisp :tangle "init.el"
 
+* Contenido :toc:
+- [[#introducción][Introducción]]
+- [[#pendiente][Pendiente]]
+  - [[#separar-bindeos][Separar bindeos]]
+  - [[#ampliar-explicaciones-config][Ampliar explicaciones config]]
+- [[#guía-rápida][Guía Rápida]]
+  - [[#lista-de-comandos-básicos][Lista de comandos básicos]]
+  - [[#auto-guardado][Auto guardado]]
+- [[#configuración-básica][Configuración Básica]]
+  - [[#config-básica][Config Básica]]
+  - [[#cambiar-directorio-de-backups][Cambiar directorio de backups.]]
+  - [[#idioma-diccionario][Idioma Diccionario]]
+- [[#org-mode][ORG Mode]]
+  - [[#config-básica-1][Config básica]]
+  - [[#org-agenda][Org agenda]]
+- [[#gui][GUI]]
+  - [[#fuentes][Fuentes]]
+- [[#propio][Propio]]
+  - [[#funciones][Funciones]]
+  - [[#acciones-al-guardar-archivos-org][Acciones al guardar archivos org]]
+- [[#paquetes][Paquetes]]
+  - [[#paquetes-esenciales][Paquetes esenciales]]
+  - [[#paquetes-desarrollo][Paquetes desarrollo]]
+  - [[#paquetes-org][Paquetes ORG]]
+  - [[#gui-1][GUI]]
+
 * Introducción
 Este archivo  documenta mi config personal de emacs. Esta config apunta a moldear Emacs para convertirlo en una plataforma unificada de desarrollo y documentación.
 
@@ -89,11 +115,11 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
   (setq-default standard-indent 4)
-;;  (setq-default c-basic-indent 2)
-;;  (setq-default c-basic-offset 2)
-;;  (setq js-indent-level 2)
-;;  (setq css-indent-offset 2)
-;;  (setq c-basic-offset 2)
+  ;;  (setq-default c-basic-indent 2)
+  ;;  (setq-default c-basic-offset 2)
+  ;;  (setq js-indent-level 2)
+  ;;  (setq css-indent-offset 2)
+  ;;  (setq c-basic-offset 2)
 
   (setq column-number-mode t)
   (global-display-line-numbers-mode 1)
@@ -117,6 +143,8 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
   (scroll-bar-mode -1)
   (blink-cursor-mode 0)
 
+  ;;Para foldear codigo
+  (add-hook 'prog-mode-hook 'hs-minor-mode)
 #+end_src
 
 ** Cambiar directorio de backups.
@@ -130,20 +158,20 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
 ** Idioma Diccionario
 
 #+begin_src emacs-lisp 
-(setq ispell-program-name "aspell")
-(setq ispell-local-dictionary "es_ES")
-(setq ispell-local-dictionary-alist
-      '(("es_ES"
-         "[A-Za-záéíóúüñÁÉÍÓÚÜÑ]"
-         "[^A-Za-záéíóúüñÁÉÍÓÚÜÑ]"
-         "[']"
-         nil
-         ("-d" "es_ES")
-         nil utf-8)))
+  (setq ispell-program-name "aspell")
+  (setq ispell-local-dictionary "es")
+  (setq ispell-local-dictionary-alist
+        '(("es"
+           "[A-Za-záéíóúüñÁÉÍÓÚÜÑ]"
+           "[^A-Za-záéíóúüñÁÉÍÓÚÜÑ]"
+           "[']"
+           nil
+           ("-d" "es")
+           nil utf-8)))
 
-(add-hook 'org-mode-hook 'flyspell-mode)
-(add-hook 'markdown-mode-hook 'flyspell-mode)
-(add-hook 'text-mode-hook 'flyspell-mode)  
+  (add-hook 'org-mode-hook 'flyspell-mode)
+  (add-hook 'markdown-mode-hook 'flyspell-mode)
+  (add-hook 'text-mode-hook 'flyspell-mode)  
 #+end_src
 
 * ORG Mode :org:
@@ -160,6 +188,7 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
   (setq org-treat-insert-todo-heading-as-state-change t)
   (setq org-log-into-drawer t)
   (add-to-list 'org-modules 'org-habit t)
+  (setq org-confirm-babel-evaluate nil) ; No pregunta confirmacion al exportar bloques de codigo
 #+end_src
 ** Org agenda
 #+begin_src emacs-lisp
@@ -173,29 +202,29 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
 
   (setq org-agenda-custom-commands
         '(("n" "TAREAS" (
-            (tags-todo "+DEADLINE<\"<today>\"|+SCHEDULED<\"<today>\""
-                       ((org-agenda-overriding-header "\nATRASADO\n")
-                        (org-agenda-block-separator ?─)
-                        (org-agenda-skip-function '(org-agenda-skip-entry-if 'done))))
-            
-            (agenda ""
-                    ((org-agenda-overriding-header "\nDIA\n")
-                     (org-agenda-block-separator ?─)
-                     (org-agenda-span 1)))
-            
-            (agenda ""
-                    ((org-agenda-overriding-header "\nSEMANA\n")
-                     (org-agenda-block-separator ?─)
-                     (org-agenda-span 7)))
-            (agenda ""
-                    ((org-agenda-overriding-header "\nMES\n")
-                     (org-agenda-block-separator ?─)
-                     (org-agenda-span 30)))
+                         (tags-todo "+DEADLINE<\"<today>\"|+SCHEDULED<\"<today>\""
+                                    ((org-agenda-overriding-header "\nATRASADO\n")
+                                     (org-agenda-block-separator ?─)
+                                     (org-agenda-skip-function '(org-agenda-skip-entry-if 'done))))
+                         
+                         (agenda ""
+                                 ((org-agenda-overriding-header "\nDIA\n")
+                                  (org-agenda-block-separator ?─)
+                                  (org-agenda-span 1)))
+                         
+                         (agenda ""
+                                 ((org-agenda-overriding-header "\nSEMANA\n")
+                                  (org-agenda-block-separator ?─)
+                                  (org-agenda-span 7)))
+                         (agenda ""
+                                 ((org-agenda-overriding-header "\nMES\n")
+                                  (org-agenda-block-separator ?─)
+                                  (org-agenda-span 30)))
 
-            (tags-todo "*"
-                       ((org-agenda-overriding-header "\nTAREAS A FUTURO\n")
-                        (org-agenda-block-separator ?─)
-                        (org-agenda-skip-function '(org-agenda-skip-entry-if 'done 'scheduled 'deadline))))))))
+                         (tags-todo "*"
+                                    ((org-agenda-overriding-header "\nTAREAS A FUTURO\n")
+                                     (org-agenda-block-separator ?─)
+                                     (org-agenda-skip-function '(org-agenda-skip-entry-if 'done 'scheduled 'deadline))))))))
 
 #+end_src
 
@@ -206,41 +235,53 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
   (set-default-coding-systems 'utf-8)
   (setq-default line-spacing 0.12)
 
-  (setq fran/fuente-codigo "Inconsolata Nerd Font")
-  (setq fran/fuente-texto "Iosevka Nerd Font")
+  (setq fran/fuente-codigo "Hurmit Nerd Font")
+  (setq fran/fuente-texto "Tinos Nerd Font")
 
-  (set-face-attribute 'org-block nil :family fran/fuente-codigo)
-  (set-face-attribute 'default nil :family fran/fuente-texto :height 150)
+  (defun fran/org-fuentes ()
+    (set-face-attribute 'org-block nil :family fran/fuente-codigo :height 130))
 
-  (add-hook 'prog-mode-hook
-            (lambda ()
-              (setq buffer-face-mode-face `(:family ,fran/fuente-codigo))
-              (buffer-face-mode t)))
-#+end_src
-** Mode-line
-#+begin_src emacs-lisp
+  (fran/org-fuentes)
+
+  (add-hook 'org-mode-hook 'fran/org-fuentes)
+  (add-hook 'prog-mode-hook (lambda ()
+                              (setq buffer-face-mode-face `(:family ,fran/fuente-codigo))
+                              (buffer-face-mode t)))
 #+end_src
 * Propio
-Funciones definidas por mi, algunos cambios de bindeos, etc.
-
+Esto es mas que nada para practicar elisp, funciones simples y algun que otro bindeo.
+** Funciones
 #+begin_src emacs-lisp
-  (setq fran/lista-temas '(doom-feather-light doom-dracula))
-  (setq aux-temas 0)
-
-  (setq fran/tema-actual (nth aux-temas fran/lista-temas))
+  (defvar fran/lista-temas '(doom-feather-light doom-feather-dark))
+  (defvar fran/aux-temas 0)
+  (defvar fran/tema-actual (nth fran/aux-temas fran/lista-temas))
   (defun fran/cambiar-tema ()
+    "Cambia el tema actual ciclando en la lista fran/lista-temas"
     (interactive)
     (progn
       (when fran/tema-actual (disable-theme fran/tema-actual))
-      (setq aux-temas (mod (1+ aux-temas) (length fran/lista-temas)))
-      (setq fran/tema-actual (nth aux-temas fran/lista-temas))
-      (load-theme fran/tema-actual t)))
+      (setq fran/aux-temas (mod (1+ fran/aux-temas) (length fran/lista-temas)))
+      (setq fran/tema-actual (nth fran/aux-temas fran/lista-temas))
+      (load-theme fran/tema-actual t)      
+      (message "Tema actual: %s" fran/tema-actual)
+      (fran/org-fuentes)))
+
+  (defvar fran/lista-fuentes-altura '(125 150 175))
+  (defvar fran/fuente-altura (nth 1 fran/lista-fuentes-altura))
+  (defvar fran/aux-fuentes-altura 0)
+  (defun fran/cambiar-fuente-altura ()
+    (interactive)
+    (progn
+      (when fran/fuente-altura (set-face-attribute 'default nil :height fran/fuente-altura))
+      (setq fran/aux-fuentes-altura (mod (1+ fran/aux-fuentes-altura) (length fran/lista-fuentes-altura)))
+      (message "Tamaño de fuente: %s" fran/fuente-altura)
+      (setq fran/fuente-altura (nth fran/aux-fuentes-altura fran/lista-fuentes-altura))))
+  (set-face-attribute 'default nil :height fran/fuente-altura)
 
   (defun fran/nueva-linea-abajo () 
     (interactive) 
     (end-of-line) 
     (newline-and-indent))
-
   (defun fran/nueva-linea-arriba () 
     (interactive) 
     (beginning-of-line) 
@@ -248,19 +289,69 @@ Funciones definidas por mi, algunos cambios de bindeos, etc.
     (forward-line -1) 
     (indent-according-to-mode))
 
+  (defun fran/ejecutar-bloques-buffer ()
+    "Ejecuta todos los bloques de codigos en el buffer sin pedir confirmacion"
+    (interactive)
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-execute-buffer)))
+
+  (defvar fran/live-server-p nil)
+  (defun fran/live-server-activo ()
+    "Verdadero si live-server esta corriendo"
+    (and fran/live-server-p (process-live-p fran/live-server-p)))
+  (defun fran/live-server (&optional ruta)
+    "Apaga o prende live-server en el directorio de PATH o del buffer actual.
+        Si PATH es un archivo, se usa su directorio padre.
+        Si ya está corriendo, lo apaga."
+    (interactive (list (when current-prefix-arg (read-directory-name "Live-server ruta: "))))
+    (if (fran/live-server-activo)
+        (progn
+          (kill-process fran/live-server-p)
+          (setq fran/live-server-p nil)
+          (message "live-server detenido"))
+      (let*
+          ((ruta-objetivo (or ruta (file-name-directory (or buffer-file-name default-directory))))
+           (default-directory ruta-objetivo))
+        (setq fran/live-server-p (start-process "live-server" "*live-server*" "live-server" ruta-objetivo))
+        (message "live-server iniciado en: %s" ruta-objetivo))))
+
+  (defvar fran/vite-server-p nil)
+  (defun fran/vite-server-activo ()
+    (and fran/vite-server-p (process-live-p fran/vite-server-p)))
+  (defun fran/vite-server (&optional ruta)
+    (interactive (list (when current-prefix-arg (read-directory-name "Vite-server ruta: "))))
+    (if (fran/vite-server-activo)
+        (progn
+          (kill-process fran/vite-server-p)
+          (setq fran/vite-server-p nil)
+          (message "vite-server detenido"))
+      (let*
+          ((ruta-objetivo (or ruta (file-name-directory (or buffer-file-name default-directory))))
+           (default-directory ruta-objetivo))
+        (setq fran/vite-server-p (start-process-shell-command "vite-server" "*vite-server*" "npx vite"))
+        (message "vite-server iniciado en: %s" ruta-objetivo))))
+
+  (defun fran/toggle-hiding ()
+    (interactive)
+    (save-excursion
+      (end-of-line)
+      (hs-toggle-hiding)))
 
   (global-set-key (kbd "C-c t") 'fran/cambiar-tema)
-  (global-set-key (kbd "M-RET") 'fran/nueva-linea-abajo)
-  (global-set-key (kbd "M-S-RET") 'fran/nueva-linea-arriba)
+  (global-set-key (kbd "C-<return>") 'fran/nueva-linea-abajo)
+  (global-set-key (kbd "C-S-<return>") 'fran/nueva-linea-arriba)
   (global-set-key (kbd "C-S-z") 'undo-redo)
   (global-set-key (kbd "C-z") 'undo)
+  (global-set-key (kbd "C-<tab>") 'fran/toggle-hiding)
+
 #+end_src
 
-** Acciones al guardar archivos org 
+** Acciones al guardar archivos org
 Autotanglear archivos .el al guardar archivos.org.
 Lo mismo que hacer =C-c C-v t=.
 #+begin_src emacs-lisp
   (defun fran/auto-tangle ()
+    "Exporta automaticamente los bloques con :tangle al guardar un archivo org"
     (when (string-equal (file-name-extension buffer-file-name) "org")
       (org-babel-tangle)))
   (add-hook 'after-save-hook 'fran/auto-tangle)
@@ -314,9 +405,6 @@ Corfu, UI auto completado de buffer (código).
     (corfu-auto-delay 0.25)
     (corfu-auto-prefix 1)
     (corfu-preview-current nil)
-    ;; Recommended: Enable Corfu globally.  This is recommended since Dabbrev can
-    ;; be used globally (M-/).  See also the customization variable
-    ;; `global-corfu-modes' to exclude certain modes.
     :init
     (global-corfu-mode))
   (keymap-set corfu-map "TAB" #'corfu-next)
@@ -329,10 +417,23 @@ Corfu, UI auto completado de buffer (código).
 
 #+end_src
 
-Which-key, muestra opciones de auto completado para comandos. Marginalia, muestra meta datos en el minibuffer (info de comandos, permisos de archivos, etc).
+Permite elegir un comando para ejecutar en donde este el cursor (buffer, minibufer, funcion, etc)
+
+#+begin_src emacs-lisp 
+  (use-package embark
+    :ensure t
+    :bind
+    (("C-." . embark-act)
+     ("C-h b" . embark-bindings)) ;; alternativa para `describe-bindings'
+    :init
+    (setq prefix-help-command #'embark-prefix-help-command))
+#+end_src
+
+Which-key, muestra opciones de auto completado para comandos. Marginalia, muestra meta datos en el minibuffer (info de comandos, permisos de archivos, etc). Keycast muestra las teclas presionadas
 #+begin_src emacs-lisp
   (use-package which-key :ensure t :config (which-key-mode))
   (use-package marginalia :ensure t :init (marginalia-mode))
+  (use-package keycast :ensure t :init (keycast-mode-line-mode))
 #+end_src
 
 Orderless, agrega búsqueda sin orden en los auto completados.
@@ -348,7 +449,42 @@ Orderless, agrega búsqueda sin orden en los auto completados.
 
 #+end_src
 
-** Paquetes desarrollo
+** Paquetes desarrollo :desarrollo:
+*** Lenguajes
+Paquetes de lenguajes específicos
+
+Sly, REPL common lisp para emacs. Geiser REPL para Scheme (guile)
+#+begin_src emacs-lisp
+  (use-package sly :ensure t)
+  (setq inferior-lisp-program "/usr/bin/sbcl")
+  (use-package geiser-guile :ensure t)
+#+end_src
+
+Modos para desarrollo web, js, golang, etc.
+#+begin_src emacs-lisp 
+  (use-package web-mode
+    :ensure t
+    :mode (("\\.html?\\'" . web-mode)
+           ("\\.jsx\\'" . web-mode)
+           ("\\.tsx\\'" . web-mode))
+    :config
+    (setq web-mode-enable-auto-closing t
+          web-mode-enable-auto-quoting t
+          web-mode-enable-current-element-highlight t
+          web-mode-enable-current-column-highlight t))
+
+  (use-package css-mode
+    :ensure t
+    :mode "\\.css\\'")
+
+  (use-package scss-mode
+    :ensure t
+    :mode "\\.scss\\'")
+
+  (use-package go-mode
+    :ensure t)
+#+end_src
+
 *** Paquetes que proveen funcionalidades de IDE.
 Config automática de treesit
 #+begin_src emacs-lisp 
@@ -356,9 +492,9 @@ Config automática de treesit
     :ensure t
     :custom
     (treesit-auto-install 'prompt)
-    :config
-    (setq treesit-auto-langs '(c java javascript html css))
-    (global-treesit-auto-mode))
+    (treesit-auto-langs '(c java javascript html css go))
+    :config)
+  (global-treesit-auto-mode)
 #+end_src
 
 Magit, GUI de git en emacs
@@ -379,23 +515,32 @@ Quickrun es para hacer ejecuciones de código en el buffer.
 
 Eglot, LSP de emacs, configurado con algunos lenguajes.
 #+begin_src emacs-lisp
+  (setq eglot-autoshutdown t)
+  (setq eglot-sync-connect 1)
+
   (use-package eglot
     :hook
     ((c-mode . eglot-ensure)
      (c++-mode . eglot-ensure)
      (js-mode . eglot-ensure)
+     (js-ts-mode . eglot-ensure)
+     (typescript-ts-mode . eglot-ensure)
+     (css-mode . eglot-ensure)
+     (html-mode . eglot-ensure)
+     (web-mode . eglot-ensure)
+     (go-ts-mode . eglot-ensure)
+     (go-mode . eglot-ensure)
      (java-mode . eglot-ensure))
     :custom
-    (fset #'jsonrpc--log-event #'ignore)
     (eglot-events-buffer-size 0))
+  ;; (add-hook 'eglot-managed-mode-hook 
+  ;;         (lambda () (setq xref-backend-functions #'eglot-xref-backend)))
 
-  (setq eglot-autoshutdown t)
-  (add-hook 'eglot-managed-mode-hook 
-            (lambda () (setq xref-backend-functions #'eglot-xref-backend)))
-  (add-hook 'java-mode-hook 'eglot-java-mode)
+  (use-package eglot-java
+    :after eglot)
+  (add-hook 'java-ts-mode-hook #'eglot-java-mode)
 
-  (setq read-process-output-max (* 1024 1024))  ; Aumentar buffer a 1MB
-  (setq eglot-sync-connect 1)
+  (setq read-process-output-max (* 1024 1024))  ;1MB
 #+end_src
 
 Yasnippet, permite definir snippets en emacs, viene con varios por defecto.
@@ -412,6 +557,12 @@ Algunas definiciones de snippets para org-mode, tangle archivo, a directorio, et
 
                          ("suml" "#+begin_src plantuml :file \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
                           "Bloque de codigo plantuml, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/suml" nil nil)
+                         
+                         ("html" "#+begin_src html \n${1:}\n#+end_src"
+                          "Bloque de codigo html" nil nil nil "~/.emacs.d/snippets/html" nil nil)
+
+                         ("js" "#+begin_src javascript \n${1:}\n#+end_src"
+                          "Bloque de codigo javascript" nil nil nil "~/.emacs.d/snippets/js" nil nil)
                          
                          ("verb" "#+begin_src verb \n${1:}\n#+end_src"
                           "Bloque de codigo verb" nil nil nil "~/.emacs.d/snippets/verb" nil nil)
@@ -432,20 +583,27 @@ Cliente http emacs con org mode
   (use-package verb :ensure t)
   (with-eval-after-load 'org
     (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
+#+end_src
+
+Plantuml, para diagramas uml
+#+begin_src emacs-lisp 
+  (use-package plantuml-mode :ensure t)
+  (setq org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml/plantuml.jar"))
+  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
+#+end_src
+** Paquetes ORG :org:
+
+Ejecutar lenguajes org-babel
+#+begin_src emacs-lisp
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((verb . t)))
-#+end_src
-*** Lenguajes
-Paquetes de lenguajes específicos
-
-Sly, REPL common lisp para emacs.
-#+begin_src emacs-lisp
-  (use-package sly :ensure t)
-  (setq inferior-lisp-program "/usr/bin/sbcl")
+   '((scheme . t)
+     (verb . t)
+     (sql . t)
+     (shell . t)
+     (plantuml . t)))
 #+end_src
 
-** Paquetes ORG
 Tabla de contenidos org.
 #+begin_src emacs-lisp
   (use-package toc-org :ensure t
@@ -453,16 +611,6 @@ Tabla de contenidos org.
     :init (add-hook 'org-mode-hook 'toc-org-enable))
 #+end_src
 
-Plantum, genera diagramas UML desde código planta uml ejecutado con org-babel
-#+begin_src emacs-lisp
-  (use-package plantuml-mode :ensure t)
-  (setq org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml/plantuml.jar"))
-  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((scheme . t)
-     (plantuml . t)))
-#+end_src
 
 ** GUI
 #+begin_src emacs-lisp
@@ -495,4 +643,3 @@ Plantum, genera diagramas UML desde código planta uml ejecutado con org-babel
   (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
   (setq pdf-view-disable-text-extraction nil)
 #+end_src
-
