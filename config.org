@@ -3,7 +3,7 @@
 #+LANGUAGE: es
 #+STARTUP: content indent showeverything
 #+DESCRIPTION: Configuración personal de emacs para centralizar lo que es documentacion, desarrollo y edicion de texto en general.
-#+PROPERTY: header-args:emacs-lisp :tangle "init.el"
+#+PROPERTY: header-args:emacs-lisp :tangle "init.el" :results none
 
 * Contenido :toc:
 - [[#introducción][Introducción]]
@@ -111,6 +111,10 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
   (global-set-key (kbd "C-c c") (lambda () (interactive) (find-file "~/.emacs.d/config.org"))) ; bindeo para abrir config
                                           ;(electric-pair-mode 1)
   (show-paren-mode 1)
+  ;;Emacs va a preferir abrir buffers temporales vertical
+  (setq split-width-threshold 0)
+  (setq split-height-threshold nil)
+
 
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
@@ -431,7 +435,7 @@ Permite elegir un comando para ejecutar en donde este el cursor (buffer, minibuf
 
 Which-key, muestra opciones de auto completado para comandos. Marginalia, muestra meta datos en el minibuffer (info de comandos, permisos de archivos, etc). Keycast muestra las teclas presionadas
 #+begin_src emacs-lisp
-  (use-package which-key :ensure t :config (which-key-mode))
+  (use-package which-key :ensure t :init (which-key-mode) (which-key-setup-side-window-bottom))
   (use-package marginalia :ensure t :init (marginalia-mode))
   (use-package keycast :ensure t :init (keycast-mode-line-mode))
 #+end_src
@@ -446,7 +450,11 @@ Orderless, agrega búsqueda sin orden en los auto completados.
 
   (setq orderless-skip-highlighting nil
         orderless-component-separator #'orderless-escapable-split-on-space)
+#+end_src
 
+Multiple cursores
+#+begin_src emacs-lisp 
+ (use-package multiple-cursors :ensure t)
 #+end_src
 
 ** Paquetes desarrollo :desarrollo:
@@ -481,21 +489,31 @@ Modos para desarrollo web, js, golang, etc.
     :ensure t
     :mode "\\.scss\\'")
 
+  (use-package json-mode
+    :ensure t)
   (use-package go-mode
     :ensure t)
+  (use-package php-mode
+    :ensure t)
+  (use-package rust-mode
+    :ensure t
+    :init (setq rust-mode-treesitter-derive t))
 #+end_src
 
 *** Paquetes que proveen funcionalidades de IDE.
 Config automática de treesit
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp
   (use-package treesit-auto
     :ensure t
     :custom
     (treesit-auto-install 'prompt)
-    (treesit-auto-langs '(c java javascript html css go))
-    :config)
-  (global-treesit-auto-mode)
+    :config      
+    (setq treesit-auto-langs '(c java javascript html css go rust php))
+    (treesit-auto-add-to-auto-mode-alist '(c java javascript html css go rust php))
+    (add-to-list 'eglot-server-programs '(php-mode . ("intelephense" "--stdio")))
+    (global-treesit-auto-mode))
 #+end_src
+
 
 Magit, GUI de git en emacs
 Projectile, mejora la gestión de proyectos, búsqueda de archivo en el proyecto, compilación, etc.
@@ -530,15 +548,13 @@ Eglot, LSP de emacs, configurado con algunos lenguajes.
      (web-mode . eglot-ensure)
      (go-ts-mode . eglot-ensure)
      (go-mode . eglot-ensure)
+     (rust-mode . eglot-ensure)
+     (php-mode . eglot-ensure)
      (java-mode . eglot-ensure))
     :custom
     (eglot-events-buffer-size 0))
   ;; (add-hook 'eglot-managed-mode-hook 
   ;;         (lambda () (setq xref-backend-functions #'eglot-xref-backend)))
-
-  (use-package eglot-java
-    :after eglot)
-  (add-hook 'java-ts-mode-hook #'eglot-java-mode)
 
   (setq read-process-output-max (* 1024 1024))  ;1MB
 #+end_src
@@ -610,7 +626,6 @@ Tabla de contenidos org.
     :commands toc-org-enable
     :init (add-hook 'org-mode-hook 'toc-org-enable))
 #+end_src
-
 
 ** GUI
 #+begin_src emacs-lisp
