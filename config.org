@@ -160,7 +160,6 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
 #+end_src
 
 ** Idioma Diccionario
-
 #+begin_src emacs-lisp 
   (setq ispell-program-name "aspell")
   (setq ispell-local-dictionary "es")
@@ -182,17 +181,16 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
 ** Config básica
 #+begin_src emacs-lisp
   (require 'org)
-  (setq-default org-enforce-todo-dependencies t) ; fuerza TODO al padre de un item
+  (setq-default org-enforce-todo-dependencies t)
   (setq org-startup-with-inline-images t) ; Muestra las imagenes por defecto, en vez de mostrar links
-  (add-hook 'org-mode-hook 'org-display-inline-images) ; cuando creo un archivo desde el org mode (por ejemplo una img como resultado de plant uml) actualiza todas las imagenes
-  (setq org-M-RET-may-split-line '((default . nil))) ; M-RET es para crear nuevo headline, item lista, subnivel, etc del nivel actual
+  (add-hook 'org-mode-hook 'org-display-inline-images)
+  (setq org-M-RET-may-split-line '((default . nil)))
   (setq org-insert-heading-respect-content t)
   (setq org-log-done 'time)
-
   (setq org-treat-insert-todo-heading-as-state-change t)
   (setq org-log-into-drawer t)
   (add-to-list 'org-modules 'org-habit t)
-  (setq org-confirm-babel-evaluate nil) ; No pregunta confirmacion al exportar bloques de codigo
+  (setq org-confirm-babel-evaluate nil)
 #+end_src
 ** Org agenda
 #+begin_src emacs-lisp
@@ -200,7 +198,7 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
 
   (setq tareas-dir "~/Organizacion/")
   (setq org-agenda-files (list tareas-dir))
-  (setq org-agenda-current-time-string "← Ahora")
+  (setq org-agenda-current-time-string "←-------")
   (setq org-agenda-format-date "%d/%m/%Y")
   (setq org-agenda-time-grid '((daily today) () "" ""))
 
@@ -209,13 +207,11 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
                          (tags-todo "+DEADLINE<\"<today>\"|+SCHEDULED<\"<today>\""
                                     ((org-agenda-overriding-header "\nATRASADO\n")
                                      (org-agenda-block-separator ?─)
-                                     (org-agenda-skip-function '(org-agenda-skip-entry-if 'done))))
-                         
+                                     (org-agenda-skip-function '(org-agenda-skip-entry-if 'done))))                         
                          (agenda ""
                                  ((org-agenda-overriding-header "\nDIA\n")
                                   (org-agenda-block-separator ?─)
-                                  (org-agenda-span 1)))
-                         
+                                  (org-agenda-span 1)))                         
                          (agenda ""
                                  ((org-agenda-overriding-header "\nSEMANA\n")
                                   (org-agenda-block-separator ?─)
@@ -224,7 +220,6 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
                                  ((org-agenda-overriding-header "\nMES\n")
                                   (org-agenda-block-separator ?─)
                                   (org-agenda-span 30)))
-
                          (tags-todo "*"
                                     ((org-agenda-overriding-header "\nTAREAS A FUTURO\n")
                                      (org-agenda-block-separator ?─)
@@ -299,41 +294,31 @@ Esto es mas que nada para practicar elisp, funciones simples y algun que otro bi
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-execute-buffer)))
 
+
+  (defun fran/ejecutar-daemon (process-var process-call &optional ruta)
+    (let ((proceso (symbol-value process-var)))
+      (if (and proceso (process-live-p proceso))
+          (progn
+            (delete-process proceso)
+            (set process-var nil)
+            (message "Daemon detenido"))
+        (let*
+            ((ruta-objetivo (or ruta (file-name-directory (or buffer-file-name default-directory))))
+             (default-directory ruta-objetivo)
+             (nuevo-proceso (funcall process-call)))
+          (set process-var nuevo-proceso)
+          (message "%s iniciado en: %s" (process-name nuevo-proceso) ruta-objetivo)))))
+
   (defvar fran/live-server-p nil)
-  (defun fran/live-server-activo ()
-    "Verdadero si live-server esta corriendo"
-    (and fran/live-server-p (process-live-p fran/live-server-p)))
-  (defun fran/live-server (&optional ruta)
-    "Apaga o prende live-server en el directorio de PATH o del buffer actual.
-        Si PATH es un archivo, se usa su directorio padre.
-        Si ya está corriendo, lo apaga."
-    (interactive (list (when current-prefix-arg (read-directory-name "Live-server ruta: "))))
-    (if (fran/live-server-activo)
-        (progn
-          (kill-process fran/live-server-p)
-          (setq fran/live-server-p nil)
-          (message "live-server detenido"))
-      (let*
-          ((ruta-objetivo (or ruta (file-name-directory (or buffer-file-name default-directory))))
-           (default-directory ruta-objetivo))
-        (setq fran/live-server-p (start-process "live-server" "*live-server*" "live-server" ruta-objetivo))
-        (message "live-server iniciado en: %s" ruta-objetivo))))
+  (defun fran/live-server (&optional ruta)  
+    (interactive (list (when current-prefix-arg (read-directory-name "Ejecutar en: "))))
+    (fran/ejecutar-daemon 'fran/live-server-p (lambda () (start-process "live-server" "*live-server*" "live-server")) ruta))
 
   (defvar fran/vite-server-p nil)
-  (defun fran/vite-server-activo ()
-    (and fran/vite-server-p (process-live-p fran/vite-server-p)))
   (defun fran/vite-server (&optional ruta)
-    (interactive (list (when current-prefix-arg (read-directory-name "Vite-server ruta: "))))
-    (if (fran/vite-server-activo)
-        (progn
-          (kill-process fran/vite-server-p)
-          (setq fran/vite-server-p nil)
-          (message "vite-server detenido"))
-      (let*
-          ((ruta-objetivo (or ruta (file-name-directory (or buffer-file-name default-directory))))
-           (default-directory ruta-objetivo))
-        (setq fran/vite-server-p (start-process-shell-command "vite-server" "*vite-server*" "npx vite"))
-        (message "vite-server iniciado en: %s" ruta-objetivo))))
+    (interactive (list (when current-prefix-arg (read-directory-name "Ejecutar en: "))))
+    (fran/ejecutar-daemon 'fran/vite-server-p (lambda () (start-process-shell-command "vite-server" "*vite-server*" "npx vite")) ruta))
+
 
   (defun fran/toggle-hiding ()
     (interactive)
@@ -454,7 +439,7 @@ Orderless, agrega búsqueda sin orden en los auto completados.
 
 Multiple cursores
 #+begin_src emacs-lisp 
- (use-package multiple-cursors :ensure t)
+  (use-package multiple-cursors :ensure t)
 #+end_src
 
 ** Paquetes desarrollo :desarrollo:
@@ -468,7 +453,7 @@ Sly, REPL common lisp para emacs. Geiser REPL para Scheme (guile)
   (use-package geiser-guile :ensure t)
 #+end_src
 
-Modos para desarrollo web, js, golang, etc.
+Modos lenguajes js, golang, php etc.
 #+begin_src emacs-lisp 
   (use-package web-mode
     :ensure t
@@ -481,26 +466,16 @@ Modos para desarrollo web, js, golang, etc.
           web-mode-enable-current-element-highlight t
           web-mode-enable-current-column-highlight t))
 
-  (use-package css-mode
-    :ensure t
-    :mode "\\.css\\'")
-
-  (use-package scss-mode
-    :ensure t
-    :mode "\\.scss\\'")
-
-  (use-package json-mode
-    :ensure t)
-  (use-package go-mode
-    :ensure t)
-  (use-package php-mode
-    :ensure t)
-  (use-package rust-mode
-    :ensure t
-    :init (setq rust-mode-treesitter-derive t))
+  (use-package css-mode :ensure t :mode "\\.css\\'")
+  (use-package scss-mode :ensure t :mode "\\.scss\\'")
+  (use-package json-mode :ensure t)
+  (use-package go-mode :ensure t)
+  (use-package php-mode :ensure t)
+  (use-package rust-mode :ensure t)
 #+end_src
 
 *** Paquetes que proveen funcionalidades de IDE.
+**** 
 Config automática de treesit
 #+begin_src emacs-lisp
   (use-package treesit-auto
@@ -510,11 +485,9 @@ Config automática de treesit
     :config      
     (setq treesit-auto-langs '(c java javascript html css go rust php))
     (treesit-auto-add-to-auto-mode-alist '(c java javascript html css go rust php))
-    (add-to-list 'eglot-server-programs '(php-mode . ("intelephense" "--stdio")))
     (global-treesit-auto-mode))
 #+end_src
-
-
+**** 
 Magit, GUI de git en emacs
 Projectile, mejora la gestión de proyectos, búsqueda de archivo en el proyecto, compilación, etc.
 #+begin_src emacs-lisp 
@@ -551,6 +524,8 @@ Eglot, LSP de emacs, configurado con algunos lenguajes.
      (rust-mode . eglot-ensure)
      (php-mode . eglot-ensure)
      (java-mode . eglot-ensure))
+    :config
+    (add-to-list 'eglot-server-programs '((php-mode web-mode) . ("intelephense" "--stdio")))
     :custom
     (eglot-events-buffer-size 0))
   ;; (add-hook 'eglot-managed-mode-hook 
@@ -601,12 +576,6 @@ Cliente http emacs con org mode
     (define-key org-mode-map (kbd "C-c C-r") verb-command-map))
 #+end_src
 
-Plantuml, para diagramas uml
-#+begin_src emacs-lisp 
-  (use-package plantuml-mode :ensure t)
-  (setq org-plantuml-jar-path (expand-file-name "~/.emacs.d/plantuml/plantuml.jar"))
-  (add-to-list 'org-src-lang-modes '("plantuml" . plantuml))
-#+end_src
 ** Paquetes ORG :org:
 
 Ejecutar lenguajes org-babel
@@ -638,17 +607,11 @@ Tabla de contenidos org.
     (load-theme fran/tema-actual t)
     (doom-themes-visual-bell-config)
     (doom-themes-org-config))
-
-  (use-package solaire-mode  ;; Cambia de color los buffers "secundarios" como pop ups, terminal, etc. para que sea mas facil distinguir de los "primarios"
-    :ensure t
-    :config
-    (solaire-global-mode +1))
-
+  
+  (use-package solaire-mode :ensure t :config (solaire-global-mode +1))
   (use-package rainbow-mode :ensure t :hook org-mode prog-mode) ;;Muestra los codigos rgb con color
-
   (use-package rainbow-identifiers :ensure t)
   (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
-
   (use-package rainbow-delimiters :ensure t :hook ((org-mode . rainbow-delimiters-mode) (prog-mode . rainbow-delimiters-mode)))
 
   ;;Para leer pdfs
