@@ -24,7 +24,6 @@
   - [[#fuentes][Fuentes]]
 - [[#propio][Propio]]
   - [[#funciones][Funciones]]
-  - [[#acciones-al-guardar-archivos-org][Acciones al guardar archivos org]]
 - [[#paquetes][Paquetes]]
   - [[#paquetes-esenciales][Paquetes esenciales]]
   - [[#paquetes-desarrollo][Paquetes desarrollo]]
@@ -34,7 +33,7 @@
 * Introducción
 Este archivo  documenta mi config personal de emacs. Esta config apunta a moldear Emacs para convertirlo en una plataforma unificada de desarrollo y documentación.
 
-Debería proporcionar las herramientas básicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas básicas para la documentación de software (generar diagramas uml, bpmn, etc) y herramientas para la gestión organizacional y personal (agenda, todo).
+Debería proporcionar las herramientas básicas de una IDE al desarrollar en un lenguaje dado (y entorno), permitir tomar notas en general, crear documentos en general, proporcionar herramientas básicas para la documentación de software generar diagramas, etc y herramientas para la gestión organizacional y personal (agenda, todo).
 
 Dado que Emacs es fácilmente extensible y cuenta con innumerables paquetes considero que es una elección apropiada como plataforma para llevar a cabo este proyecto, por ejemplo, Emacs cuenta con ORG-Mode, un modo de emacs que nos va a facilitar el proceso de documentar y organizarnos, Eglot funciona como cliente LSP(Lenguaje server protocol) y nos da la mayoría de funcionalidades de una IDE, magit nos permite gestionar repositorios git, etc.
 
@@ -114,7 +113,6 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
   ;;Emacs va a preferir abrir buffers temporales vertical
   (setq split-width-threshold 0)
   (setq split-height-threshold nil)
-
 
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
@@ -251,32 +249,6 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
 Esto es mas que nada para practicar elisp, funciones simples y algun que otro bindeo.
 ** Funciones
 #+begin_src emacs-lisp
-  (defvar fran/lista-temas '(doom-feather-light doom-feather-dark))
-  (defvar fran/aux-temas 0)
-  (defvar fran/tema-actual (nth fran/aux-temas fran/lista-temas))
-  (defun fran/cambiar-tema ()
-    "Cambia el tema actual ciclando en la lista fran/lista-temas"
-    (interactive)
-    (progn
-      (when fran/tema-actual (disable-theme fran/tema-actual))
-      (setq fran/aux-temas (mod (1+ fran/aux-temas) (length fran/lista-temas)))
-      (setq fran/tema-actual (nth fran/aux-temas fran/lista-temas))
-      (load-theme fran/tema-actual t)      
-      (message "Tema actual: %s" fran/tema-actual)
-      (fran/org-fuentes)))
-
-  (defvar fran/lista-fuentes-altura '(125 150 175))
-  (defvar fran/fuente-altura (nth 1 fran/lista-fuentes-altura))
-  (defvar fran/aux-fuentes-altura 0)
-  (defun fran/cambiar-fuente-altura ()
-    (interactive)
-    (progn
-      (when fran/fuente-altura (set-face-attribute 'default nil :height fran/fuente-altura))
-      (setq fran/aux-fuentes-altura (mod (1+ fran/aux-fuentes-altura) (length fran/lista-fuentes-altura)))
-      (message "Tamaño de fuente: %s" fran/fuente-altura)
-      (setq fran/fuente-altura (nth fran/aux-fuentes-altura fran/lista-fuentes-altura))))
-  (set-face-attribute 'default nil :height fran/fuente-altura)
-
   (defun fran/nueva-linea-abajo () 
     (interactive) 
     (end-of-line) 
@@ -293,7 +265,6 @@ Esto es mas que nada para practicar elisp, funciones simples y algun que otro bi
     (interactive)
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-execute-buffer)))
-
 
   (defun fran/ejecutar-daemon (process-var process-call &optional ruta)
     (let ((proceso (symbol-value process-var)))
@@ -319,31 +290,23 @@ Esto es mas que nada para practicar elisp, funciones simples y algun que otro bi
     (interactive (list (when current-prefix-arg (read-directory-name "Ejecutar en: "))))
     (fran/ejecutar-daemon 'fran/vite-server-p (lambda () (start-process-shell-command "vite-server" "*vite-server*" "npx vite")) ruta))
 
-
   (defun fran/toggle-hiding ()
     (interactive)
     (save-excursion
       (end-of-line)
       (hs-toggle-hiding)))
-
-  (global-set-key (kbd "C-c t") 'fran/cambiar-tema)
-  (global-set-key (kbd "C-<return>") 'fran/nueva-linea-abajo)
-  (global-set-key (kbd "C-S-<return>") 'fran/nueva-linea-arriba)
-  (global-set-key (kbd "C-S-z") 'undo-redo)
-  (global-set-key (kbd "C-z") 'undo)
-  (global-set-key (kbd "C-<tab>") 'fran/toggle-hiding)
-
-#+end_src
-
-** Acciones al guardar archivos org
-Autotanglear archivos .el al guardar archivos.org.
-Lo mismo que hacer =C-c C-v t=.
-#+begin_src emacs-lisp
+  
   (defun fran/auto-tangle ()
     "Exporta automaticamente los bloques con :tangle al guardar un archivo org"
     (when (string-equal (file-name-extension buffer-file-name) "org")
       (org-babel-tangle)))
   (add-hook 'after-save-hook 'fran/auto-tangle)
+
+  (global-set-key (kbd "C-<return>") 'fran/nueva-linea-abajo)
+  (global-set-key (kbd "C-M-<return>") 'fran/nueva-linea-arriba)
+  (global-set-key (kbd "C-S-z") 'undo-redo)
+  (global-set-key (kbd "C-z") 'undo)
+  (global-set-key (kbd "C-<tab>") 'fran/toggle-hiding)
 #+end_src
 
 * Paquetes :paquetes:
@@ -406,8 +369,18 @@ Corfu, UI auto completado de buffer (código).
 
 #+end_src
 
-Permite elegir un comando para ejecutar en donde este el cursor (buffer, minibufer, funcion, etc)
+Previzualizar en ventana actual
+#+begin_src emacs-lisp 
+          (use-package consult :ensure t
+            :bind
+            (("C-x b" . consult-buffer)
+             ("M-g i" . consult-imenu)
+             ("M-y" . consult-yank-pop)
+             ("M-g g" . consult-goto-line)
+             ("M-s s" . consult-line)))
+#+end_src
 
+Permite elegir un comando para ejecutar en donde este el cursor (buffer, minibufer, funcion, etc)
 #+begin_src emacs-lisp 
   (use-package embark
     :ensure t
@@ -416,6 +389,7 @@ Permite elegir un comando para ejecutar en donde este el cursor (buffer, minibuf
      ("C-h b" . embark-bindings)) ;; alternativa para `describe-bindings'
     :init
     (setq prefix-help-command #'embark-prefix-help-command))
+  (use-package embark-consult :ensure t)
 #+end_src
 
 Which-key, muestra opciones de auto completado para comandos. Marginalia, muestra meta datos en el minibuffer (info de comandos, permisos de archivos, etc). Keycast muestra las teclas presionadas
@@ -444,8 +418,6 @@ Multiple cursores
 
 ** Paquetes desarrollo :desarrollo:
 *** Lenguajes
-Paquetes de lenguajes específicos
-
 Sly, REPL common lisp para emacs. Geiser REPL para Scheme (guile)
 #+begin_src emacs-lisp
   (use-package sly :ensure t)
@@ -475,7 +447,6 @@ Modos lenguajes js, golang, php etc.
 #+end_src
 
 *** Paquetes que proveen funcionalidades de IDE.
-**** 
 Config automática de treesit
 #+begin_src emacs-lisp
   (use-package treesit-auto
@@ -487,7 +458,7 @@ Config automática de treesit
     (treesit-auto-add-to-auto-mode-alist '(c java javascript html css go rust php))
     (global-treesit-auto-mode))
 #+end_src
-**** 
+
 Magit, GUI de git en emacs
 Projectile, mejora la gestión de proyectos, búsqueda de archivo en el proyecto, compilación, etc.
 #+begin_src emacs-lisp 
@@ -545,9 +516,6 @@ Algunas definiciones de snippets para org-mode, tangle archivo, a directorio, et
 
                          ("ela" "#+begin_src emacs-lisp :tangle \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
                           "Bloque de codigo emacs-lisp con tangle a $archivo" nil nil nil "~/.emacs.d/snippets/ela" nil nil)
-
-                         ("suml" "#+begin_src plantuml :file \"${1:archivo}\" :mkdirp yes\n\n#+end_src"
-                          "Bloque de codigo plantuml, guarda en $archivo" nil nil nil "~/.emacs.d/snippets/suml" nil nil)
                          
                          ("html" "#+begin_src html \n${1:}\n#+end_src"
                           "Bloque de codigo html" nil nil nil "~/.emacs.d/snippets/html" nil nil)
@@ -585,8 +553,7 @@ Ejecutar lenguajes org-babel
    '((scheme . t)
      (verb . t)
      (sql . t)
-     (shell . t)
-     (plantuml . t)))
+     (shell . t)))
 #+end_src
 
 Tabla de contenidos org.
@@ -598,26 +565,28 @@ Tabla de contenidos org.
 
 ** GUI
 #+begin_src emacs-lisp
-  (use-package doom-themes
-    :ensure t
-    :custom
-    (doom-themes-enable-bold t) 
-    (doom-themes-enable-italic t)
-    :config
-    (load-theme fran/tema-actual t)
-    (doom-themes-visual-bell-config)
-    (doom-themes-org-config))
-  
-  (use-package solaire-mode :ensure t :config (solaire-global-mode +1))
-  (use-package rainbow-mode :ensure t :hook org-mode prog-mode) ;;Muestra los codigos rgb con color
-  (use-package rainbow-identifiers :ensure t)
-  (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
-  (use-package rainbow-delimiters :ensure t :hook ((org-mode . rainbow-delimiters-mode) (prog-mode . rainbow-delimiters-mode)))
+  (setq fran/tema-actual 'modus-operandi-tinted)
 
-  ;;Para leer pdfs
-  (use-package pdf-tools :ensure t :config
-    (pdf-loader-install)
-    (setq pdf-loader-install-commands 'install))
-  (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
-  (setq pdf-view-disable-text-extraction nil)
+  (use-package doom-themes
+      :ensure t
+      :custom
+      (doom-themes-enable-bold t) 
+      (doom-themes-enable-italic t)
+      :config
+      (load-theme fran/tema-actual t)
+      (doom-themes-visual-bell-config)
+      (doom-themes-org-config))
+
+    (use-package solaire-mode :ensure t :config (solaire-global-mode +1))
+    (use-package rainbow-mode :ensure t :hook org-mode prog-mode) ;;Muestra los codigos rgb con color
+    (use-package rainbow-identifiers :ensure t)
+    (add-hook 'prog-mode-hook 'rainbow-identifiers-mode)
+    (use-package rainbow-delimiters :ensure t :hook ((org-mode . rainbow-delimiters-mode) (prog-mode . rainbow-delimiters-mode)))
+
+    ;;Para leer pdfs
+    (use-package pdf-tools :ensure t :config
+      (pdf-loader-install)
+      (setq pdf-loader-install-commands 'install))
+    (add-hook 'pdf-view-mode-hook (lambda () (display-line-numbers-mode -1)))
+    (setq pdf-view-disable-text-extraction nil)
 #+end_src
