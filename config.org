@@ -19,6 +19,7 @@
   - [[#idioma-diccionario][Idioma Diccionario]]
 - [[#org-mode][ORG Mode]]
   - [[#config-básica-1][Config básica]]
+  - [[#capture-templates][Capture templates]]
   - [[#org-agenda][Org agenda]]
 - [[#gui][GUI]]
   - [[#fuentes][Fuentes]]
@@ -111,8 +112,6 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
                                           ;(electric-pair-mode 1)
   (show-paren-mode 1)
   ;;Emacs va a preferir abrir buffers temporales vertical
-  (setq split-width-threshold 0)
-  (setq split-height-threshold nil)
 
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
@@ -123,6 +122,8 @@ Cerrar brakets, mostrar donde cierran, cantidad de espacios del tab (4), numero 
   ;;  (setq css-indent-offset 2)
   ;;  (setq c-basic-offset 2)
 
+  (setq fill-column 80)
+  (global-display-fill-column-indicator-mode)
   (setq column-number-mode t)
   (global-display-line-numbers-mode 1)
   (global-visual-line-mode t)
@@ -190,6 +191,14 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
   (add-to-list 'org-modules 'org-habit t)
   (setq org-confirm-babel-evaluate nil)
 #+end_src
+** Capture templates
+#+begin_src emacs-lisp 
+  (setq org-capture-templates
+      '(("t" "Tarea" entry (file+headline "~/Organizacion/Tareas.org" "TAREAS")
+         "* TODO %?\n  %i\n  %a")
+        ("d" "Diario" plain (file+olp+datetree "~/Organizacion/Diario.org")
+         "%<%H:%M>\n %a %?" :empty-lines-after 1)))
+#+end_src
 ** Org agenda
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-c a") 'org-agenda)
@@ -222,7 +231,6 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
                                     ((org-agenda-overriding-header "\nTAREAS A FUTURO\n")
                                      (org-agenda-block-separator ?─)
                                      (org-agenda-skip-function '(org-agenda-skip-entry-if 'done 'scheduled 'deadline))))))))
-
 #+end_src
 
 * GUI
@@ -249,64 +257,75 @@ Emacs cada vez que guardas archivos te crea un backup en el mismo directorio del
 Esto es mas que nada para practicar elisp, funciones simples y algun que otro bindeo.
 ** Funciones
 #+begin_src emacs-lisp
-  (defun fran/nueva-linea-abajo () 
-    (interactive) 
-    (end-of-line) 
-    (newline-and-indent))
-  (defun fran/nueva-linea-arriba () 
-    (interactive) 
-    (beginning-of-line) 
-    (newline) 
-    (forward-line -1) 
-    (indent-according-to-mode))
+    (defun fran/nueva-linea-abajo () 
+      (interactive) 
+      (end-of-line) 
+      (newline-and-indent))
+    (defun fran/nueva-linea-arriba () 
+      (interactive) 
+      (beginning-of-line) 
+      (newline) 
+      (forward-line -1) 
+      (indent-according-to-mode))
 
-  (defun fran/ejecutar-bloques-buffer ()
-    "Ejecuta todos los bloques de codigos en el buffer sin pedir confirmacion"
-    (interactive)
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-execute-buffer)))
+    (defun fran/ejecutar-bloques-buffer ()
+      "Ejecuta todos los bloques de codigos en el buffer sin pedir confirmacion"
+      (interactive)
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-execute-buffer)))
 
-  (defun fran/ejecutar-daemon (process-var process-call &optional ruta)
-    (let ((proceso (symbol-value process-var)))
-      (if (and proceso (process-live-p proceso))
-          (progn
-            (delete-process proceso)
-            (set process-var nil)
-            (message "Daemon detenido"))
-        (let*
-            ((ruta-objetivo (or ruta (file-name-directory (or buffer-file-name default-directory))))
-             (default-directory ruta-objetivo)
-             (nuevo-proceso (funcall process-call)))
-          (set process-var nuevo-proceso)
-          (message "%s iniciado en: %s" (process-name nuevo-proceso) ruta-objetivo)))))
+    (defun fran/ejecutar-daemon (process-var process-call &optional ruta)
+      (let ((proceso (symbol-value process-var)))
+        (if (and proceso (process-live-p proceso))
+            (progn
+              (delete-process proceso)
+              (set process-var nil)
+              (message "Daemon detenido"))
+          (let*
+              ((dir-objetivo (cond
+                               (ruta (if (file-directory-p ruta) ruta (file-name-directory ruta)))
+                               (t (file-name-directory (or buffer-file-name default-directory)))))
+               
+               (default-directory dir-objetivo)
+               (nuevo-proceso (if ruta
+                     (funcall process-call ruta)
+                   (funcall process-call))))
+            (set process-var nuevo-proceso)
+            (message "%s iniciado en: %s" (process-name nuevo-proceso) (cond (ruta ruta) (t dir-objetivo)))))))
 
-  (defvar fran/live-server-p nil)
-  (defun fran/live-server (&optional ruta)  
-    (interactive (list (when current-prefix-arg (read-directory-name "Ejecutar en: "))))
-    (fran/ejecutar-daemon 'fran/live-server-p (lambda () (start-process "live-server" "*live-server*" "live-server")) ruta))
+    (defvar fran/live-server-p nil)
+    (defun fran/live-server (&optional ruta)  
+      (interactive (list (when current-prefix-arg (read-directory-name "Ejecutar en: "))))
+      (fran/ejecutar-daemon 'fran/live-server-p (lambda () (start-process "live-server" "*live-server*" "live-server")) ruta))
 
-  (defvar fran/vite-server-p nil)
-  (defun fran/vite-server (&optional ruta)
-    (interactive (list (when current-prefix-arg (read-directory-name "Ejecutar en: "))))
-    (fran/ejecutar-daemon 'fran/vite-server-p (lambda () (start-process-shell-command "vite-server" "*vite-server*" "npx vite")) ruta))
+    (defvar fran/vite-server-p nil)
+    (defun fran/vite-server (&optional ruta)
+      (interactive (list (when current-prefix-arg (read-directory-name "Ejecutar en: "))))
+      (fran/ejecutar-daemon 'fran/vite-server-p (lambda () (start-process-shell-command "vite-server" "*vite-server*" "npx vite")) ruta))
 
-  (defun fran/toggle-hiding ()
-    (interactive)
-    (save-excursion
-      (end-of-line)
-      (hs-toggle-hiding)))
-  
-  (defun fran/auto-tangle ()
-    "Exporta automaticamente los bloques con :tangle al guardar un archivo org"
-    (when (string-equal (file-name-extension buffer-file-name) "org")
-      (org-babel-tangle)))
-  (add-hook 'after-save-hook 'fran/auto-tangle)
+    (defvar fran/php-server-p nil)
+    (defun fran/php-server (&optional ruta)
+      (interactive (list (when current-prefix-arg (read-file-name "Ejecutar en: "))))
+      (fran/ejecutar-daemon 'fran/php-server-p
+                            (lambda (&optional obj) (start-process-shell-command "php-server" "*php-server*" (concat "php -S localhost:8000 " obj))) ruta))
 
-  (global-set-key (kbd "C-<return>") 'fran/nueva-linea-abajo)
-  (global-set-key (kbd "C-M-<return>") 'fran/nueva-linea-arriba)
-  (global-set-key (kbd "C-S-z") 'undo-redo)
-  (global-set-key (kbd "C-z") 'undo)
-  (global-set-key (kbd "C-<tab>") 'fran/toggle-hiding)
+    (defun fran/toggle-hiding ()
+      (interactive)
+      (save-excursion
+        (end-of-line)
+        (hs-toggle-hiding)))
+
+    (defun fran/auto-tangle ()
+      "Exporta automaticamente los bloques con :tangle al guardar un archivo org"
+      (when (string-equal (file-name-extension buffer-file-name) "org")
+        (org-babel-tangle)))
+    (add-hook 'after-save-hook 'fran/auto-tangle)
+
+    (global-set-key (kbd "C-<return>") 'fran/nueva-linea-abajo)
+    (global-set-key (kbd "C-M-<return>") 'fran/nueva-linea-arriba)
+    (global-set-key (kbd "C-S-z") 'undo-redo)
+    (global-set-key (kbd "C-z") 'undo)
+    (global-set-key (kbd "C-<tab>") 'fran/toggle-hiding)
 #+end_src
 
 * Paquetes :paquetes:
@@ -341,8 +360,8 @@ Vertico es una UI para el auto completado del minibuffer.
     (vertico-mode))
   (setq completion-ignore-case t)
   (setq read-file-name-completion-ignore-case t)
-  (keymap-set vertico-map "<left>" #'vertico-directory-up)
-  (keymap-set vertico-map "<right>" #'vertico-insert)
+  (keymap-set vertico-map "S-<left>" #'vertico-directory-up)
+  (keymap-set vertico-map "S-<right>" #'vertico-insert)
 #+end_src
 
 Corfu, UI auto completado de buffer (código).
@@ -545,7 +564,6 @@ Cliente http emacs con org mode
 #+end_src
 
 ** Paquetes ORG :org:
-
 Ejecutar lenguajes org-babel
 #+begin_src emacs-lisp
   (org-babel-do-load-languages
@@ -562,7 +580,10 @@ Tabla de contenidos org.
     :commands toc-org-enable
     :init (add-hook 'org-mode-hook 'toc-org-enable))
 #+end_src
-
+Transclusion, embebe contenido de links al archivo org
+#+begin_src emacs-lisp
+(use-package org-transclusion :ensure t)
+#+end_src
 ** GUI
 #+begin_src emacs-lisp
   (setq fran/tema-actual 'modus-operandi-tinted)
